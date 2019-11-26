@@ -1,14 +1,13 @@
 import pandas as pd
-from collections import defaultdict
+from random import random
+from math import exp
 
 
 class Dados:
-    # Contantes para controle na busca de dados
-    __ID = 0
-    __MATERIA = 1
-    __TURMA = 2
-    __PROFESSOR = 3
-    __QUANTIDADE_AULAS = 4
+    __MATERIA = 0
+    __TURMA = 1
+    __PROFESSOR = 2
+    __QUANTIDADE_AULAS = 3
 
     def __init__(self, dados=None):
         self.__dados = dados
@@ -18,9 +17,6 @@ class Dados:
 
     def get_all(self):
         return self.__dados
-
-    def get_dado_by_id(self, id):
-        return self.__get_by_key(self.__ID, id)
 
     def get_dados_by_materia(self, materia):
         return self.__get_by_key(self.__MATERIA, materia)
@@ -45,11 +41,9 @@ class Dados:
 
 
 class Restricoes:
-    # Contantes para controle na busca de dados
-    __ID = 0
-    __PROFESSOR = 1
-    __RESTRICAO___HORARIO = 2
-    __DIA_DA_SEMANA_RESTRICAO = 3
+    __PROFESSOR = 0
+    __RESTRICAO___HORARIO = 1
+    __DIA_DA_SEMANA_RESTRICAO = 2
 
     def __init__(self, restricoes=None):
         self.__restricoes = restricoes
@@ -60,11 +54,9 @@ class Restricoes:
     def get_all(self):
         return self.__restricoes
 
-    def get_restricao_by_id(self, professor):
-        return self.__get_by_key(self.__PROFESSOR, professor)
-
     def get_restricao_by_professor(self, professor):
-        return self.__get_by_key(self.__PROFESSOR, professor)
+        return [restricao[1:len(restricao)] for restricao in self.__restricoes if
+                restricao[self.__PROFESSOR] == professor]
 
     def get_restricao_by_restricao_horario(self, restricao_horario):
         return self.__get_by_key(self.__RESTRICAO___HORARIO, restricao_horario)
@@ -77,11 +69,9 @@ class Restricoes:
 
 
 class RestricoesTurma:
-    # Contantes para controle na busca de dados
-    __ID = 0
-    __TURMA = 1
-    __HORARIO_DA_RESTRICAO = 2
-    __DIA_DA_SEMANA = 3
+    __TURMA = 0
+    __HORARIO_DA_RESTRICAO = 1
+    __DIA_DA_SEMANA = 2
 
     def __init__(self, restricoes_turma=None):
         self.__restricoes_turma = restricoes_turma
@@ -92,11 +82,12 @@ class RestricoesTurma:
     def get_all(self):
         return self.__restricoes_turma
 
-    def get_restricao_turma_by_id(self, id):
-        return self.__get_by_key(self.__ID, id)
+    def get_dias_semana(self):
+        return list(set([dado[self.__DIA_DA_SEMANA] for dado in self.__restricoes_turma]))
 
     def get_restricao_turma_by_turma(self, turma):
-        return self.__get_by_key(self.__TURMA, turma)
+        return [restricao[1:len(restricao)] for restricao in self.__restricoes_turma if
+                restricao[self.__TURMA] == turma]
 
     def get_restricao_turma_by_horario_da_restricao(self, horario_da_restricao):
         return self.__get_by_key(self.__HORARIO_DA_RESTRICAO, horario_da_restricao)
@@ -109,11 +100,9 @@ class RestricoesTurma:
 
 
 class Preferencias:
-    # Contantes para controle na busca de dados
-    __ID = 0
-    __PROFESSOR = 1
-    __HORARIO = 2
-    __DIA_DA_SEMANA = 3
+    __PROFESSOR = 0
+    __HORARIO = 1
+    __DIA_DA_SEMANA = 2
 
     def __init__(self, preferencias=None):
         self.__preferencias = preferencias
@@ -124,11 +113,11 @@ class Preferencias:
     def get_all(self):
         return self.__preferencias
 
-    def get_preferencia_by_id(self, id):
-        return self.__get_by_key(self.__ID, id)
-
     def get_preferencia_by_professor(self, professor):
-        return self.__get_by_key(self.__PROFESSOR, professor)
+        ret = []
+        for preferencia in self.__preferencias:
+            if preferencia[self.__PROFESSOR] == professor:
+                preferencia[1:len(preferencia)]
 
     def get_preferencia_by_horario(self, horario):
         return self.__get_by_key(self.__HORARIO, horario)
@@ -140,92 +129,145 @@ class Preferencias:
         return [preferencia for preferencia in self.__preferencias if preferencia[key] == value]
 
 
-class Grafo(object):
-    """ Implementação básica de um grafo. """
+class Vertice:
+    def __init__(self, id, professor, materia, turma, cor):
+        self.id = id
+        self.professor = professor
+        self.materia = materia
+        self.turma = turma
+        self.cor = cor
 
-    def __init__(self, arestas, direcionado=False):
-        """Inicializa as estruturas base do grafo."""
-        self.adj = defaultdict(set)
-        self.direcionado = direcionado
-        self.adiciona_arestas(arestas)
-
-    def get_vertices(self):
-        """ Retorna a lista de vértices do grafo. """
-        return list(self.adj.keys())
-
-    def get_arestas(self):
-        """ Retorna a lista de arestas do grafo. """
-        return [(k, v) for k in self.adj.keys() for v in self.adj[k]]
-
-    def adiciona_arestas(self, arestas):
-        """ Adiciona arestas ao grafo. """
-        for u, v in arestas:
-            self.adiciona_arco(u, v)
-
-    def adiciona_arco(self, u, v):
-        """ Adiciona uma ligação (arco) entre os nodos 'u' e 'v'. """
-        self.adj[u].add(v)
-        # Se o grafo é não-direcionado, precisamos adicionar arcos nos dois sentidos.
-        if not self.direcionado:
-            self.adj[v].add(u)
-
-    def existe_aresta(self, u, v):
-        """ Existe uma aresta entre os vértices 'u' e 'v'? """
-        return u in self.adj and v in self.adj[u]
-
-    def __len__(self):
-        return len(self.adj)
-
-    def __str__(self):
-        return '{}({})'.format(self.__class__.__name__, dict(self.adj))
-
-    def __getitem__(self, v):
-        return self.adj[v]
+    def update_cor(self, cor):
+        self.cor = cor
 
 
 def get_planilha_from_xlsx(xlsx, planilha):
     data_frame_dados = pd.read_excel(xlsx, sheet_name=planilha)
     dados_frame = data_frame_dados.values
 
-    return [tuple([i] + list(dados_frame[i])) for i in range(len(dados_frame))]
+    return [tuple(dados_frame) for dados_frame in dados_frame]
 
 
-def read_xlsx(path):
-    return pd.ExcelFile(path)
+def f(solucao):
+    return 0
 
 
-def SimulatedAnnealing():
+def perturba(solucao):
+    return 0
+
+
+def simulated_annealing(S0, T0, M, P, L, alpha):
+    S = S0
+    T = T0
+    j = 1
+
+    while True:
+        i = 1
+        n_success = 0
+
+        while True:
+            S_i = perturba(S)
+            delta_fi = f(S_i) - f(S)
+
+            # Teste de aceitação de uma nova solução
+            if (delta_fi <= 0) or (exp(-delta_fi / T) > random()):
+                S = S_i
+                n_success = n_success + 1
+
+            i += 1
+
+            if (n_success >= L) or (i > P):
+                break
+
+        # Atualização da temperatura (Deicaimento geométrico)
+        T = alpha * T
+
+        # Atualização do contador de iterações
+        j += 1
+
+        if (n_success == 0) or (j > M):
+            break
+
+    # Retorna a solução
+    return S
+
+
+def atualiza(lista):
     pass
+    # for time
+
+
+def calcula_cor(configuracao, horario, dia):  # [11:40...], 7:00, Segunda
+    dia_index = 0
+    if dia == 'Segunda':
+        dia_index = 0
+    elif dia == 'Terça':
+        dia_index = 1
+    elif dia == 'Quarta':
+        dia_index = 2
+    elif dia == 'Quinta':
+        dia_index = 3
+    elif dia == 'Sexta':
+        dia_index = 4
+
+    return configuracao.index(horario) + 1 + (len(configuracao) * dia_index)
+
+
+def le(xlsx, planilha):
+    data_frame_dados = pd.read_excel(xlsx, sheet_name=planilha)
+    configuracao = pd.read_excel(xlsx, sheet_name='Configuracoes')
+
+    resticoes = data_frame_dados.values
+    configuracao = [configuracao[0].strftime("%H:%M") for configuracao in configuracao.values]
+
+    professores = []
+
+    for restricao in resticoes:
+        if restricao[0] not in professores:
+            professores.append(restricao[0])
+
+    professores = [(str(professor), []) for professor in professores]
+
+    for professor in professores:
+        for resticao in resticoes:
+            if resticao[0] == professor[0]:
+                cor = calcula_cor(configuracao, resticao[1].strftime("%H:%M"), resticao[2])
+                professor[1].append(cor)
+
+    return professores
 
 
 if __name__ == '__main__':
-    xlsx = read_xlsx("./instances/Escola_A.xlsx")
+    xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
 
-    dados = Dados(get_planilha_from_xlsx(xlsx, 'Dados'))
-    configuracoes = get_planilha_from_xlsx(xlsx, 'Configuracoes')
-    restricoes = Restricoes(get_planilha_from_xlsx(xlsx, 'Restricao'))
-    restricoes_turma = RestricoesTurma(get_planilha_from_xlsx(xlsx, 'Restricoes Turma'))
-    preferencias = Preferencias(get_planilha_from_xlsx(xlsx, 'Preferencias'))
+    professor_restricoes_turma = le(xlsx, 'Restricao')
+    professor_preferecias = le(xlsx, 'Preferencias')
+    restricoes_turma = le(xlsx, 'Restricoes Turma')
 
-    # (professor, [lista de preferencias])
-    professor_lista_de_preferencias = [
-        tuple([professor, preferencias.get_preferencia_by_professor(professor)]) for
-        professor in dados.get_professores()]
+    print(professor_restricoes_turma)
+    print(professor_preferecias)
+    print(restricoes_turma)
 
-    # (professor, [lista de restricoes)
-    professor_lista_de_restricoes = [
-        tuple([professor, restricoes.get_restricao_by_professor(professor)]) for
-        professor in dados.get_professores()]
+    # dados = Dados(get_planilha_from_xlsx(xlsx, 'Dados'))
+    # configuracao = get_planilha_from_xlsx(xlsx, 'Configuracoes')
+    # restricoes = Restricoes(get_planilha_from_xlsx(xlsx, 'Restricao'))
+    # preferencias = Preferencias(get_planilha_from_xlsx(xlsx, 'Preferencias'))
 
-    # (turma, [lista de restrições])
-    turma_lista_de_restricoes = [
-        tuple([turma, restricoes_turma.get_restricao_turma_by_turma(turma)]) for
-        turma in dados.get_turmas()]
+    # (professor, [lista de preferencias do professor])
+    # professor_lista_de_preferencias = [
+    #     tuple([professor, preferencias.get_preferencia_by_professor(professor)]) for
+    #     professor in dados.get_professores()]
 
-    # Cria a lista de arestas.
-    # arestas = [('A', 'B'), ('B', 'C')]
-    # arestas = [(tuple([1, 2, 3]), tuple([5, 2, 3])), (tuple([6, 2, 3]), tuple([7, 2, 3]))]
+    # (professor, [lista de restricoes do professor)
+    # professor_lista_de_restricoes = [
+    #     tuple([professor, restricoes.get_restricao_by_professor(professor)]) for
+    #     professor in dados.get_professores()]
 
-    # Cria e imprime o grafo.
-    # grafo = Grafo(arestas, direcionado=True)
-    # print(grafo.adj)
+    # (turma, [lista de restrições da turma])
+    # turma_lista_de_restricoes = [
+    #     tuple([turma, restricoes_turma.get_restricao_turma_by_turma(turma)]) for
+    #     turma in dados.get_turmas()]
+
+    # dias_da_semana = restricoes_turma.get_dias_semana()
+    # print(calcula_cor(configuracao, datetime.time(7, 50), 'Segunda'))
+    # print(professor_lista_de_preferencias)
