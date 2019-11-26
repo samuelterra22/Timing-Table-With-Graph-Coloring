@@ -1,4 +1,4 @@
-# Timing Table With-Graph Coloring
+# Timing Table With Graph Coloring
 
 
 ### Install linux dependencies
