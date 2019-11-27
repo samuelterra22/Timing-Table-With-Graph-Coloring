@@ -15,29 +15,33 @@ class Vertice:
     def __repr__(self):
         return str(self.__dict__)
 
+
 # ----------------------------------------------------------------------------------------------------------------------]
 
-
-def f(solucao):
-    return 0
-
-
-def perturba(solucao):
-    return 0
+def perturba_solucao(lista_de_vertices):
+    return lista_de_vertices
 
 
-def simulated_annealing(S0, T0, M, P, L, alpha):
+def simulated_annealing(S0, T0, M, P, L, alpha, quantidade_aulas_dia, preferencias_professor):
     S = S0
     T = T0
     j = 1
+    # def calcula_funcao_objetivo(quantidade_aulas_dia, lista_de_vertices, preferencias_professor):
 
     while True:
         i = 1
         n_success = 0
 
         while True:
-            S_i = perturba(S)
-            delta_fi = f(S_i) - f(S)
+            # Busca uma nova solução
+            S_i = perturba_solucao(S)
+
+            #  Calcula f(x) para Si e S
+            f_Si = calcula_funcao_objetivo(quantidade_aulas_dia, S_i, preferencias_professor)
+            f_S = calcula_funcao_objetivo(quantidade_aulas_dia, S, preferencias_professor)
+
+            # Calcula delta de Fi
+            delta_fi = f_Si - f_S
 
             # Teste de aceitação de uma nova solução
             if (delta_fi <= 0) or (exp(-delta_fi / T) > random()):
@@ -193,6 +197,7 @@ def calcula_quantidade_de_cores(lista_de_vertices):
 
     return maior_cor
 
+
 # ----------------------------------------------------------------------------------------------------------------------
 
 
@@ -251,6 +256,7 @@ def verifica_existe_aula_cor(lista_de_vertices, professor, turma, cor):
 
 def verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, cor_1, cor_2):
     return (cor_1 - 1) // quantidade_aulas_dia == (cor_2 - 1) // quantidade_aulas_dia
+
 
 # ----------------------------------------------------------------------------------------------------------------------
 
