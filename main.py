@@ -137,6 +137,15 @@ def cria_arestas(lista_de_vertices):
     return lista_de_arestas
 
 
+def checa_factibilidade(lista_de_vertices, lista_de_arestas):
+    for vertice in lista_de_vertices:
+        lista_de_adjacentes = lista_de_arestas[vertice.id][1]
+        for adjacente in lista_de_adjacentes:
+            if lista_de_vertices[adjacente].cor == vertice.cor:
+                return True
+    return False
+
+
 if __name__ == '__main__':
     # xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
     xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
