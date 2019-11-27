@@ -95,21 +95,21 @@ def le(xlsx, planilha):
     resticoes = data_frame_dados.values
     configuracao = [configuracao[0].strftime("%H:%M") for configuracao in configuracao.values]
 
-    professores = []
+    lista = []
 
     for restricao in resticoes:
-        if restricao[0] not in professores:
-            professores.append(restricao[0])
+        if restricao[0] not in lista:
+            lista.append(restricao[0])
 
-    professores = [(str(professor), []) for professor in professores]
+    lista = [(lista, []) for professor in lista]
 
-    for professor in professores:
+    for elemento in lista:
         for resticao in resticoes:
-            if resticao[0] == professor[0]:
+            if resticao[0] == elemento[0]:
                 cor = calcula_cor(configuracao, resticao[1].strftime("%H:%M"), resticao[2])
-                professor[1].append(cor)
+                elemento[1].append(cor)
 
-    return professores
+    return lista
 
 
 def cria_vertices(xlsx):
@@ -344,7 +344,7 @@ def main():
 
     lista_de_arestas, lista_de_vertices = simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professor,
                                                               restricoes_turma,
-                                                              preferencias_professor, 1, 1, 10, 0.85, len(configuracao))
+                                                              preferencias_professor, 1, 10, 10, 0.85, len(configuracao))
 
     print(lista_de_arestas)
     print(calcula_quantidade_de_cores(lista_de_vertices))
