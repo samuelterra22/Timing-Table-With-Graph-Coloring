@@ -141,16 +141,49 @@ def checa_factibilidade(lista_de_vertices, lista_de_arestas):
     for vertice in lista_de_vertices:
         lista_de_adjacentes = lista_de_arestas[vertice.id][1]
         for adjacente in lista_de_adjacentes:
-            if lista_de_vertices[adjacente].cor == vertice.cor:
-                return True
-    return False
+            if lista_de_vertices[adjacente].cor is not None:
+                if lista_de_vertices[adjacente].cor == vertice.cor:
+                    return False
+    return True
+
+
+def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, restricoes_professor, preferencias):
+    ordem_arestas = []
+    restricoes_professor.sort(key=lambda tup: len(tup[1]), reverse=True)
+    for restricao in restricoes_professor:
+        for e in lista_de_arestas:
+            if lista_de_vertices[e[0]].professor == restricao[0]:
+                ordem_arestas.append(e)
+    for e in lista_de_arestas:
+        if e not in ordem_arestas:
+            ordem_arestas.append(e)
+
+    for dado in preferencias:
+        for aresta in ordem_arestas:
+            if lista_de_vertices[aresta[0]].professor == dado[0]:
+                for cor in dado[1]:
+                    lista_de_vertices[aresta[0]].cor = cor
+                    if checa_factibilidade(lista_de_vertices, lista_de_arestas):
+                        break
+                    else:
+                        lista_de_vertices[aresta[0]].cor = None
+
+    for e in lista_de_arestas:
+        cor = 1
+        if lista_de_vertices[e[0]].cor is None:
+            lista_de_vertices[e[0]].cor = cor
+            while not checa_factibilidade(lista_de_vertices, lista_de_arestas):
+                cor += 1
+                lista_de_vertices[e[0]].cor = cor
+
+    return lista_de_vertices
 
 
 if __name__ == '__main__':
     # xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
     xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
 
-    professor_restricoes_turma = le(xlsx, 'Restricao')
+    professor_restricoes = le(xlsx, 'Restricao')
     professor_preferecias = le(xlsx, 'Preferencias')
     restricoes_turma = le(xlsx, 'Restricoes Turma')
 
@@ -158,4 +191,6 @@ if __name__ == '__main__':
     lista_de_arestas = cria_arestas(lista_de_vertices)
 
     print(lista_de_vertices)
-    print(lista_de_arestas)
+    # print(lista_de_arestas)
+    colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, professor_restricoes,
+                                           professor_preferecias)
