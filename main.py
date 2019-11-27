@@ -17,18 +17,13 @@ class Vertice:
         return str(self.__dict__)
 
 
-# ----------------------------------------------------------------------------------------------------------------------]
+# ----------------------------------------------------------------------------------------------------------------------
+
+def perturba_solucao(lista_de_vertices):
+    return lista_de_vertices
 
 
-def f(solucao):
-    return 0
-
-
-def perturba(solucao):
-    return 0
-
-
-def simulated_annealing(S0, T0, M, P, L, alpha):
+def simulated_annealing(S0, T0, M, P, L, alpha, quantidade_aulas_dia, preferencias_professor):
     S = S0
     T = T0
     j = 1
@@ -38,8 +33,15 @@ def simulated_annealing(S0, T0, M, P, L, alpha):
         n_success = 0
 
         while True:
-            S_i = perturba(S)
-            delta_fi = f(S_i) - f(S)
+            # Busca uma nova solução
+            S_i = perturba_solucao(S)
+
+            #  Calcula f(x) para Si e S
+            f_Si = calcula_funcao_objetivo(quantidade_aulas_dia, S_i, preferencias_professor)
+            f_S = calcula_funcao_objetivo(quantidade_aulas_dia, S, preferencias_professor)
+
+            # Calcula delta de Fi
+            delta_fi = f_Si - f_S
 
             # Teste de aceitação de uma nova solução
             if (delta_fi <= 0) or (exp(-delta_fi / T) > random()):
@@ -299,8 +301,8 @@ if __name__ == '__main__':
     lista_de_arestas = cria_arestas(lista_de_vertices)
 
     lista_de_vertices = colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas,
-                                                               restricoes_professor,
-                                                               preferencias_professor)
+                                                restricoes_professor,
+                                                preferencias_professor)
     # print(lista_de_arestas)
     print(calcula_quantidade_de_cores(lista_de_vertices))
 
