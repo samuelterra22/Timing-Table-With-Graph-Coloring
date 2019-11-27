@@ -1,13 +1,13 @@
 import copy
+import random
 from math import exp
-from random import random
 
 import pandas as pd
 
 
 class Vertice:
-    def __init__(self, id, professor, materia, turma, cor):
-        self.id = id
+    def __init__(self, identificador, professor, materia, turma, cor):
+        self.id = identificador
         self.professor = professor
         self.materia = materia
         self.turma = turma
@@ -19,51 +19,48 @@ class Vertice:
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-def perturba_solucao(lista_de_vertices):
-    return lista_de_vertices
+def perturba_solucao(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma, preferencias):
+    indice_1 = random.randint(0, len(lista_de_arestas) - 1)
+    indice_2 = random.randint(0, len(lista_de_arestas) - 1)
+    lista_de_arestas[indice_1], lista_de_arestas[indice_2] = lista_de_arestas[indice_2], lista_de_arestas[indice_1]
+    return colore_grafo(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma)
 
 
-def simulated_annealing(S0, T0, M, P, L, alpha, quantidade_aulas_dia, preferencias_professor):
-    S = S0
-    T = T0
-    j = 1
+def simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turmas, preferencias,
+                        temperatura_inicial, iteracoes, perturbacoes_iteracao, alpha,
+                        quantidade_aulas_dia):
+    best_solucao = lista_de_arestas
+    solucao_atual = lista_de_arestas
+    tempetura = temperatura_inicial
 
-    while True:
-        i = 1
-        n_success = 0
-
-        while True:
+    for iteracao in range(iteracoes):
+        for i in range(perturbacoes_iteracao):
             # Busca uma nova solução
-            S_i = perturba_solucao(S)
+            S_i = perturba_solucao(lista_de_vertices, solucao_atual, restricoes_professor, restricoes_turmas,
+                                   preferencias)
 
             #  Calcula f(x) para Si e S
-            f_Si = calcula_funcao_objetivo(quantidade_aulas_dia, S_i, preferencias_professor)
-            f_S = calcula_funcao_objetivo(quantidade_aulas_dia, S, preferencias_professor)
+            f_Si = calcula_funcao_objetivo(quantidade_aulas_dia, S_i, preferencias)
+            f_S = calcula_funcao_objetivo(quantidade_aulas_dia, solucao_atual, preferencias)
 
             # Calcula delta de Fi
             delta_fi = f_Si - f_S
 
             # Teste de aceitação de uma nova solução
-            if (delta_fi <= 0) or (exp(-delta_fi / T) > random()):
-                S = S_i
-                n_success = n_success + 1
+            if (delta_fi <= 0) or (exp(-delta_fi / tempetura) > random.random()):
+                solucao_atual = S_i
 
-            i += 1
-
-            if (n_success >= L) or (i > P):
-                break
+                if f_S > calcula_funcao_objetivo(quantidade_aulas_dia, best_solucao, preferencias):
+                    best_solucao = copy.deepcopy(solucao_atual)
 
         # Atualização da temperatura (Deicaimento geométrico)
-        T = alpha * T
-
-        # Atualização do contador de iterações
-        j += 1
-
-        if (n_success == 0) or (j > M):
-            break
+        tempetura *= alpha
 
     # Retorna a solução
-    return S
+    return best_solucao, colore_grafo(lista_de_vertices, best_solucao, restricoes_professor, restricoes_turmas)
+
+
+# ----------------------------------------------------------------------------------------------------------------------
 
 
 def calcula_cor(configuracao, horario, dia):  # [11:40...], 7:00, Segunda
@@ -138,7 +135,7 @@ def cria_arestas(lista_de_vertices):
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-def checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor):
+def checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
     for vertice in lista_de_vertices:
         lista_de_adjacentes = lista_de_arestas[vertice.id][1]
         for adjacente in lista_de_adjacentes:
@@ -153,10 +150,18 @@ def checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professo
                 if restricao[0] == vertice.professor and vertice.cor == cor:
                     return False
 
+    for vertice in lista_de_vertices:
+        for restricao in restricoes_turma:
+            for cor in restricao[1]:
+                if restricao[0] == vertice.turma and vertice.cor == cor:
+                    return False
     return True
 
 
-def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, restricoes_professor, preferencias):
+# ----------------------------------------------------------------------------------------------------------------------
+
+def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma,
+                                           preferencias):
     ordem_arestas = []
     restricoes_professor.sort(key=lambda tup: len(tup[1]), reverse=True)
     for restricao in restricoes_professor:
@@ -172,7 +177,7 @@ def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, 
             if lista_de_vertices[aresta[0]].professor == dado[0]:
                 for cor in dado[1]:
                     lista_de_vertices[aresta[0]].cor = cor
-                    if checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor):
+                    if checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
                         break
                     else:
                         lista_de_vertices[aresta[0]].cor = None
@@ -181,14 +186,14 @@ def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, 
         cor = 1
         if lista_de_vertices[e[0]].cor is None:
             lista_de_vertices[e[0]].cor = cor
-            while not checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor):
+            while not checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
                 cor += 1
                 lista_de_vertices[e[0]].cor = cor
 
     return lista_de_vertices
 
 
-def colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas, restricoes_professor, preferencias):
+def colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma, preferencias):
     ordem_arestas = copy.deepcopy(lista_de_arestas)
     ordem_arestas.sort(key=lambda tup: len(tup[1]), reverse=True)
     for dado in preferencias:
@@ -196,7 +201,7 @@ def colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas, restricoes_prof
             if lista_de_vertices[aresta[0]].professor == dado[0]:
                 for cor in dado[1]:
                     lista_de_vertices[aresta[0]].cor = cor
-                    if checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor):
+                    if checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
                         break
                     else:
                         lista_de_vertices[aresta[0]].cor = None
@@ -205,24 +210,36 @@ def colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas, restricoes_prof
         cor = 1
         if lista_de_vertices[e[0]].cor is None:
             lista_de_vertices[e[0]].cor = cor
-            while not checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor):
+            while not checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
                 cor += 1
                 lista_de_vertices[e[0]].cor = cor
 
     return lista_de_vertices
 
 
-def calcula_quantidade_de_cores(lista_de_vertices):
-    maior_cor = -1
+def colore_grafo(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
+    ordem_arestas = copy.deepcopy(lista_de_arestas)
+    for e in ordem_arestas:
+        cor = 1
+        if lista_de_vertices[e[0]].cor is None:
+            lista_de_vertices[e[0]].cor = cor
+            while not checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
+                cor += 1
+                lista_de_vertices[e[0]].cor = cor
 
-    for vertice in lista_de_vertices:
-        if vertice.cor > maior_cor:
-            maior_cor = vertice.cor
-
-    return maior_cor
+    return lista_de_vertices
 
 
 # ----------------------------------------------------------------------------------------------------------------------
+
+
+def calcula_quantidade_de_cores(lista_de_vertices):
+    lista_de_vertices = [9999 for vertice in lista_de_vertices if vertice.id is None]
+    cores = []
+    for vertice in lista_de_vertices:
+        if vertice.cor not in cores:
+            cores.append(vertice.cor)
+    return len(cores)
 
 
 def calcula_funcao_objetivo(quantidade_aulas_dia, lista_de_vertices, preferencias_professor):
@@ -284,8 +301,7 @@ def verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, cor_1, cor_2):
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-
-if __name__ == '__main__':
+def main():
     xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
     # xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
     # xlsx = pd.ExcelFile("./instances/Escola_B.xlsx")
@@ -300,9 +316,18 @@ if __name__ == '__main__':
     lista_de_vertices = cria_vertices(xlsx)
     lista_de_arestas = cria_arestas(lista_de_vertices)
 
-    lista_de_vertices = colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas,
-                                                restricoes_professor,
-                                                preferencias_professor)
+    # lista_de_vertices = colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas,
+    #                                             restricoes_professor,
+    #                                             restricoes_turma,
+    #                                             preferencias_professor)
+
+    # lista_de_vertices = colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas,
+    #                                             restricoes_professor,
+    #                                             restricoes_turma,
+    #                                             preferencias_professor)
+
+    simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma,
+                        preferencias_professor, 100, 10, 5, 0.85, len(configuracao))
     # print(lista_de_arestas)
     print(calcula_quantidade_de_cores(lista_de_vertices))
 
@@ -310,3 +335,7 @@ if __name__ == '__main__':
     print(lista_de_vertices)
     # print(restricoes_professor)
     print(calcula_funcao_objetivo(len(configuracao), lista_de_vertices, preferencias_professor))
+
+
+if __name__ == '__main__':
+    main()
