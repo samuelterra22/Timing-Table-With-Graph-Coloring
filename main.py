@@ -1,6 +1,7 @@
 import _pickle as cPickle
 import copy
 import random
+import time
 from math import exp
 
 import pandas as pd
@@ -316,6 +317,7 @@ def verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, cor_1, cor_2):
 # ----------------------------------------------------------------------------------------------------------------------
 
 def main():
+    begin = time.time()
     # xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
     xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
     # xlsx = pd.ExcelFile("./instances/Escola_B.xlsx")
@@ -342,7 +344,7 @@ def main():
 
     lista_de_arestas, lista_de_vertices = simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professor,
                                                               restricoes_turma,
-                                                              preferencias_professor, 1, 1, 5, 0.85, len(configuracao))
+                                                              preferencias_professor, 1, 1, 10, 0.85, len(configuracao))
 
     print(lista_de_arestas)
     print(calcula_quantidade_de_cores(lista_de_vertices))
@@ -351,6 +353,7 @@ def main():
     print(lista_de_vertices)
     # print(restricoes_professor)
     print(calcula_funcao_objetivo(len(configuracao), lista_de_vertices, preferencias_professor))
+    print(time.time() - begin)
 
 
 if __name__ == '__main__':
