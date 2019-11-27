@@ -3,132 +3,6 @@ from random import random
 from math import exp
 
 
-class Dados:
-    __MATERIA = 0
-    __TURMA = 1
-    __PROFESSOR = 2
-    __QUANTIDADE_AULAS = 3
-
-    def __init__(self, dados=None):
-        self.__dados = dados
-
-    def add_dado(self, dado):
-        self.__dados.append(dado)
-
-    def get_all(self):
-        return self.__dados
-
-    def get_dados_by_materia(self, materia):
-        return self.__get_by_key(self.__MATERIA, materia)
-
-    def get_dados_by_turma(self, turma):
-        return self.__get_by_key(self.__TURMA, turma)
-
-    def get_dados_by_professor(self, professor):
-        return self.__get_by_key(self.__PROFESSOR, professor)
-
-    def get_dados_by_quantidade_aulas(self, quantidade_aulas):
-        return self.__get_by_key(self.__QUANTIDADE_AULAS, quantidade_aulas)
-
-    def get_professores(self):
-        return list(set([dado[self.__PROFESSOR] for dado in self.__dados]))
-
-    def get_turmas(self):
-        return list(set([dado[self.__TURMA] for dado in self.__dados]))
-
-    def __get_by_key(self, key, value):
-        return [dado for dado in self.__dados if dado[key] == value]
-
-
-class Restricoes:
-    __PROFESSOR = 0
-    __RESTRICAO___HORARIO = 1
-    __DIA_DA_SEMANA_RESTRICAO = 2
-
-    def __init__(self, restricoes=None):
-        self.__restricoes = restricoes
-
-    def add_restricoes(self, restricao):
-        self.__restricoes.append(restricao)
-
-    def get_all(self):
-        return self.__restricoes
-
-    def get_restricao_by_professor(self, professor):
-        return [restricao[1:len(restricao)] for restricao in self.__restricoes if
-                restricao[self.__PROFESSOR] == professor]
-
-    def get_restricao_by_restricao_horario(self, restricao_horario):
-        return self.__get_by_key(self.__RESTRICAO___HORARIO, restricao_horario)
-
-    def get_restricao_by_dia_da_semana_restricao(self, dia_da_semana_restricao):
-        return self.__get_by_key(self.__DIA_DA_SEMANA_RESTRICAO, dia_da_semana_restricao)
-
-    def __get_by_key(self, key, value):
-        return [restricao for restricao in self.__restricoes if restricao[key] == value]
-
-
-class RestricoesTurma:
-    __TURMA = 0
-    __HORARIO_DA_RESTRICAO = 1
-    __DIA_DA_SEMANA = 2
-
-    def __init__(self, restricoes_turma=None):
-        self.__restricoes_turma = restricoes_turma
-
-    def add_restricoes_turma(self, restricao):
-        self.__restricoes_turma.append(restricao)
-
-    def get_all(self):
-        return self.__restricoes_turma
-
-    def get_dias_semana(self):
-        return list(set([dado[self.__DIA_DA_SEMANA] for dado in self.__restricoes_turma]))
-
-    def get_restricao_turma_by_turma(self, turma):
-        return [restricao[1:len(restricao)] for restricao in self.__restricoes_turma if
-                restricao[self.__TURMA] == turma]
-
-    def get_restricao_turma_by_horario_da_restricao(self, horario_da_restricao):
-        return self.__get_by_key(self.__HORARIO_DA_RESTRICAO, horario_da_restricao)
-
-    def get_restricao_turma_by_dia_da_semana(self, dia_da_semana):
-        return self.__get_by_key(self.__DIA_DA_SEMANA, dia_da_semana)
-
-    def __get_by_key(self, key, value):
-        return [restricao_turma for restricao_turma in self.__restricoes_turma if restricao_turma[key] == value]
-
-
-class Preferencias:
-    __PROFESSOR = 0
-    __HORARIO = 1
-    __DIA_DA_SEMANA = 2
-
-    def __init__(self, preferencias=None):
-        self.__preferencias = preferencias
-
-    def add_preferencias(self, restricao):
-        self.__preferencias.append(restricao)
-
-    def get_all(self):
-        return self.__preferencias
-
-    def get_preferencia_by_professor(self, professor):
-        ret = []
-        for preferencia in self.__preferencias:
-            if preferencia[self.__PROFESSOR] == professor:
-                preferencia[1:len(preferencia)]
-
-    def get_preferencia_by_horario(self, horario):
-        return self.__get_by_key(self.__HORARIO, horario)
-
-    def get_preferencia_by_dia_da_semana(self, dia_da_semana):
-        return self.__get_by_key(self.__DIA_DA_SEMANA, dia_da_semana)
-
-    def __get_by_key(self, key, value):
-        return [preferencia for preferencia in self.__preferencias if preferencia[key] == value]
-
-
 class Vertice:
     def __init__(self, id, professor, materia, turma, cor):
         self.id = id
@@ -140,12 +14,8 @@ class Vertice:
     def update_cor(self, cor):
         self.cor = cor
 
-
-def get_planilha_from_xlsx(xlsx, planilha):
-    data_frame_dados = pd.read_excel(xlsx, sheet_name=planilha)
-    dados_frame = data_frame_dados.values
-
-    return [tuple(dados_frame) for dados_frame in dados_frame]
+    def __repr__(self):
+        return str(self.__dict__)
 
 
 def f(solucao):
@@ -237,37 +107,46 @@ def le(xlsx, planilha):
     return professores
 
 
+def cria_vertices(xlsx):
+    data_frame_dados = pd.read_excel(xlsx, sheet_name='Dados')
+
+    lista_de_vertices = []
+    i = 0
+
+    for dado in data_frame_dados.values:
+        for _ in range(dado[3]):
+            lista_de_vertices.append(Vertice(i, dado[2], dado[0], dado[1], None))
+            i += 1
+
+    return lista_de_vertices
+
+
+def cria_arestas(lista_de_vertices):
+    lista_de_arestas = []
+
+    for vertice in lista_de_vertices:
+        lista_de_arestas.append((vertice.id, []))
+
+    for vertice_i in lista_de_vertices:
+        for vertice_j in lista_de_vertices:
+            if vertice_i.id != vertice_j.id:
+                if vertice_i.professor == vertice_j.professor \
+                        or vertice_i.turma == vertice_j.turma:
+                    lista_de_arestas[vertice_i.id][1].append(vertice_j.id)
+
+    return lista_de_arestas
+
+
 if __name__ == '__main__':
-    xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
+    # xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
+    xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
 
     professor_restricoes_turma = le(xlsx, 'Restricao')
     professor_preferecias = le(xlsx, 'Preferencias')
     restricoes_turma = le(xlsx, 'Restricoes Turma')
 
-    print(professor_restricoes_turma)
-    print(professor_preferecias)
-    print(restricoes_turma)
+    lista_de_vertices = cria_vertices(xlsx)
+    lista_de_arestas = cria_arestas(lista_de_vertices)
 
-    # dados = Dados(get_planilha_from_xlsx(xlsx, 'Dados'))
-    # configuracao = get_planilha_from_xlsx(xlsx, 'Configuracoes')
-    # restricoes = Restricoes(get_planilha_from_xlsx(xlsx, 'Restricao'))
-    # preferencias = Preferencias(get_planilha_from_xlsx(xlsx, 'Preferencias'))
-
-    # (professor, [lista de preferencias do professor])
-    # professor_lista_de_preferencias = [
-    #     tuple([professor, preferencias.get_preferencia_by_professor(professor)]) for
-    #     professor in dados.get_professores()]
-
-    # (professor, [lista de restricoes do professor)
-    # professor_lista_de_restricoes = [
-    #     tuple([professor, restricoes.get_restricao_by_professor(professor)]) for
-    #     professor in dados.get_professores()]
-
-    # (turma, [lista de restrições da turma])
-    # turma_lista_de_restricoes = [
-    #     tuple([turma, restricoes_turma.get_restricao_turma_by_turma(turma)]) for
-    #     turma in dados.get_turmas()]
-
-    # dias_da_semana = restricoes_turma.get_dias_semana()
-    # print(calcula_cor(configuracao, datetime.time(7, 50), 'Segunda'))
-    # print(professor_lista_de_preferencias)
+    print(lista_de_vertices)
+    print(lista_de_arestas)
