@@ -1,3 +1,4 @@
+import _pickle as cPickle
 import copy
 import random
 from math import exp
@@ -19,45 +20,52 @@ class Vertice:
 
 # ----------------------------------------------------------------------------------------------------------------------
 
-def perturba_solucao(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma, preferencias):
-    indice_1 = random.randint(0, len(lista_de_arestas) - 1)
-    indice_2 = random.randint(0, len(lista_de_arestas) - 1)
-    lista_de_arestas[indice_1], lista_de_arestas[indice_2] = lista_de_arestas[indice_2], lista_de_arestas[indice_1]
-    return colore_grafo(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma)
+def perturba_solucao(lista_de_arestas):
+    random.shuffle(lista_de_arestas)
+    return lista_de_arestas
 
 
 def simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turmas, preferencias,
                         temperatura_inicial, iteracoes, perturbacoes_iteracao, alpha,
                         quantidade_aulas_dia):
-    best_solucao = lista_de_arestas
     solucao_atual = lista_de_arestas
+    best_solucao = cPickle.loads(cPickle.dumps(solucao_atual))
+    vertices_solucao_best = colore_grafo(copy.deepcopy(lista_de_vertices), best_solucao, restricoes_professor,
+                                         restricoes_turmas)
     tempetura = temperatura_inicial
 
     for iteracao in range(iteracoes):
         for i in range(perturbacoes_iteracao):
-            # Busca uma nova solução
-            S_i = perturba_solucao(lista_de_vertices, solucao_atual, restricoes_professor, restricoes_turmas,
-                                   preferencias)
+            print(i, iteracao)
+            S_i = perturba_solucao(cPickle.loads(cPickle.dumps(solucao_atual)))
 
-            #  Calcula f(x) para Si e S
-            f_Si = calcula_funcao_objetivo(quantidade_aulas_dia, S_i, preferencias)
-            f_S = calcula_funcao_objetivo(quantidade_aulas_dia, solucao_atual, preferencias)
+            vertices_solucao_i = colore_grafo(cPickle.loads(cPickle.dumps(lista_de_vertices)), S_i,
+                                              restricoes_professor, restricoes_turmas)
+            cor_Si = calcula_quantidade_de_cores(vertices_solucao_i)
+            f_Si = calcula_funcao_objetivo(quantidade_aulas_dia, vertices_solucao_i, preferencias)
+            vertices_solucao_atual = colore_grafo(cPickle.loads(cPickle.dumps(lista_de_vertices)), solucao_atual,
+                                                  restricoes_professor, restricoes_turmas)
+            cor_S = calcula_quantidade_de_cores(vertices_solucao_atual)
+            f_S = calcula_funcao_objetivo(quantidade_aulas_dia, vertices_solucao_atual, preferencias)
 
             # Calcula delta de Fi
-            delta_fi = f_Si - f_S
-
+            delta_fi = cor_Si - cor_S
+            if delta_fi == 0:
+                delta_fi = f_Si - f_S
             # Teste de aceitação de uma nova solução
             if (delta_fi <= 0) or (exp(-delta_fi / tempetura) > random.random()):
-                solucao_atual = S_i
-
-                if f_S > calcula_funcao_objetivo(quantidade_aulas_dia, best_solucao, preferencias):
-                    best_solucao = copy.deepcopy(solucao_atual)
+                solucao_atual = cPickle.loads(cPickle.dumps(S_i))
+                if cor_S < calcula_quantidade_de_cores(vertices_solucao_best):
+                    f_best = calcula_funcao_objetivo(quantidade_aulas_dia, vertices_solucao_best, preferencias)
+                    if f_S < f_best:
+                        best_solucao = cPickle.loads(cPickle.dumps(solucao_atual))
+                        vertices_solucao_best = copy.deepcopy(vertices_solucao_atual)
 
         # Atualização da temperatura (Deicaimento geométrico)
         tempetura *= alpha
 
     # Retorna a solução
-    return best_solucao, colore_grafo(lista_de_vertices, best_solucao, restricoes_professor, restricoes_turmas)
+    return best_solucao, vertices_solucao_best
 
 
 # ----------------------------------------------------------------------------------------------------------------------
@@ -136,8 +144,12 @@ def cria_arestas(lista_de_vertices):
 # ----------------------------------------------------------------------------------------------------------------------
 
 def checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
+    lista_de_adjacentes = []
     for vertice in lista_de_vertices:
-        lista_de_adjacentes = lista_de_arestas[vertice.id][1]
+        for aresta in lista_de_arestas:
+            if aresta[0] == vertice.id:
+                lista_de_adjacentes = aresta[1]
+                break
         for adjacente in lista_de_adjacentes:
             if lista_de_vertices[adjacente].cor is not None:
                 if lista_de_vertices[adjacente].cor == vertice.cor:
@@ -234,11 +246,14 @@ def colore_grafo(lista_de_vertices, lista_de_arestas, restricoes_professor, rest
 
 
 def calcula_quantidade_de_cores(lista_de_vertices):
-    lista_de_vertices = [9999 for vertice in lista_de_vertices if vertice.id is None]
     cores = []
     for vertice in lista_de_vertices:
-        if vertice.cor not in cores:
-            cores.append(vertice.cor)
+        if vertice.cor is None:
+            cor = 99999
+        else:
+            cor = vertice.cor
+        if cor not in cores:
+            cores.append(cor)
     return len(cores)
 
 
@@ -248,7 +263,6 @@ def calcula_funcao_objetivo(quantidade_aulas_dia, lista_de_vertices, preferencia
 
 
 def get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices):
-    print(preferencias_professor)
     preferencias_atendidas = 0
     for preferencia in preferencias_professor:
         for cor in preferencia[1]:
@@ -302,8 +316,8 @@ def verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, cor_1, cor_2):
 # ----------------------------------------------------------------------------------------------------------------------
 
 def main():
-    xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
-    # xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
+    # xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
+    xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
     # xlsx = pd.ExcelFile("./instances/Escola_B.xlsx")
     # xlsx = pd.ExcelFile("./instances/Escola_C.xlsx")
     # xlsx = pd.ExcelFile("./instances/Escola_D.xlsx")
@@ -326,9 +340,11 @@ def main():
     #                                             restricoes_turma,
     #                                             preferencias_professor)
 
-    simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma,
-                        preferencias_professor, 100, 10, 5, 0.85, len(configuracao))
-    # print(lista_de_arestas)
+    lista_de_arestas, lista_de_vertices = simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professor,
+                                                              restricoes_turma,
+                                                              preferencias_professor, 1, 1, 5, 0.85, len(configuracao))
+
+    print(lista_de_arestas)
     print(calcula_quantidade_de_cores(lista_de_vertices))
 
     # print(get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices))
