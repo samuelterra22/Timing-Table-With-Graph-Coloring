@@ -1,6 +1,7 @@
-import pandas as pd
-from random import random
 from math import exp
+from random import random
+
+import pandas as pd
 
 
 class Vertice:
@@ -11,11 +12,10 @@ class Vertice:
         self.turma = turma
         self.cor = cor
 
-    def update_cor(self, cor):
-        self.cor = cor
-
     def __repr__(self):
         return str(self.__dict__)
+
+# ----------------------------------------------------------------------------------------------------------------------]
 
 
 def f(solucao):
@@ -78,34 +78,6 @@ def calcula_cor(configuracao, horario, dia):  # [11:40...], 7:00, Segunda
     return configuracao.index(horario) + 1 + (len(configuracao) * dia_index)
 
 
-def verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, cor_1, cor_2):
-    return (cor_1 - 1) // quantidade_aulas_dia == (cor_2 - 1) // quantidade_aulas_dia
-
-
-def verifica_tres_aulas_seguidas(quantidade_aulas_dia, lista_vertices):
-    quantidade_tres_aulas_seguidas = 0
-    for vertice_i in lista_de_vertices:
-        for vertice_j in lista_de_vertices:
-            for vertice_k in lista_de_vertices:
-                if vertice_i.professor == vertice_j.professor \
-                        and vertice_i.professor == vertice_k.professor \
-                        and vertice_i.turma == vertice_j.turma \
-                        and vertice_i.turma == vertice_k.turma \
-                        and vertice_i.cor == vertice_j.cor - 1 \
-                        and vertice_i.cor == vertice_k.cor - 2 \
-                        and verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, vertice_i.cor, vertice_j.cor) \
-                        and verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, vertice_i.cor, vertice_k.cor):
-                    quantidade_tres_aulas_seguidas += 1
-    return quantidade_tres_aulas_seguidas
-
-
-def verifica_existe_aula_cor(lista_vertices, professor, turma, cor):
-    for vertice in lista_de_vertices:
-        if vertice.professor == professor and vertice.turma == turma and vertice.cor == cor:
-            return True
-    return False
-
-
 def le(xlsx, planilha):
     data_frame_dados = pd.read_excel(xlsx, sheet_name=planilha)
     configuracao = pd.read_excel(xlsx, sheet_name='Configuracoes')
@@ -159,6 +131,8 @@ def cria_arestas(lista_de_vertices):
 
     return lista_de_arestas
 
+
+# ----------------------------------------------------------------------------------------------------------------------
 
 def checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor):
     for vertice in lista_de_vertices:
@@ -219,6 +193,13 @@ def calcula_quantidade_de_cores(lista_de_vertices):
 
     return maior_cor
 
+# ----------------------------------------------------------------------------------------------------------------------
+
+
+def calcula_funcao_objetivo(quantidade_aulas_dia, lista_de_vertices, preferencias_professor):
+    return get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices) + verifica_tres_aulas_seguidas(
+        quantidade_aulas_dia, lista_de_vertices) + verifica_lacuna_aula(quantidade_aulas_dia, lista_de_vertices)
+
 
 def get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices):
     print(preferencias_professor)
@@ -234,9 +215,49 @@ def get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices):
     return quantidade_preferencias - preferencias_atendidas
 
 
+def verifica_tres_aulas_seguidas(quantidade_aulas_dia, lista_de_vertices):
+    quantidade_tres_aulas_seguidas = 0
+    for vertice_i in lista_de_vertices:
+        for vertice_j in lista_de_vertices:
+            for vertice_k in lista_de_vertices:
+                if vertice_i.professor == vertice_j.professor \
+                        and vertice_i.professor == vertice_k.professor \
+                        and vertice_i.turma == vertice_j.turma \
+                        and vertice_i.turma == vertice_k.turma \
+                        and vertice_i.cor == vertice_j.cor - 1 \
+                        and vertice_i.cor == vertice_k.cor - 2 \
+                        and verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, vertice_i.cor, vertice_j.cor) \
+                        and verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, vertice_i.cor, vertice_k.cor):
+                    quantidade_tres_aulas_seguidas += 1
+    return quantidade_tres_aulas_seguidas
+
+
+def verifica_lacuna_aula(quantidade_de_aulas, lista_de_vertices):
+    quantidade_lacunas = 0
+    for vertice in lista_de_vertices:
+        if not verifica_existe_aula_cor(lista_de_vertices, vertice.professor, vertice.turma, vertice.cor + 1) \
+                and verifica_existe_aula_cor(lista_de_vertices, vertice.professor, vertice.turma, vertice.cor + 2):
+            if verifica_duas_cores_mesmo_dia(quantidade_de_aulas, vertice.cor, vertice.cor + 2):
+                quantidade_lacunas += 1
+    return quantidade_lacunas
+
+
+def verifica_existe_aula_cor(lista_de_vertices, professor, turma, cor):
+    for vertice in lista_de_vertices:
+        if vertice.professor == professor and vertice.turma == turma and vertice.cor == cor:
+            return True
+    return False
+
+
+def verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, cor_1, cor_2):
+    return (cor_1 - 1) // quantidade_aulas_dia == (cor_2 - 1) // quantidade_aulas_dia
+
+# ----------------------------------------------------------------------------------------------------------------------
+
+
 if __name__ == '__main__':
-    xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
-    # xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
+    # xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
+    xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
     # xlsx = pd.ExcelFile("./instances/Escola_B.xlsx")
     # xlsx = pd.ExcelFile("./instances/Escola_C.xlsx")
     # xlsx = pd.ExcelFile("./instances/Escola_D.xlsx")
@@ -258,5 +279,4 @@ if __name__ == '__main__':
     # print(get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices))
     print(lista_de_vertices)
     # print(restricoes_professor)
-
-    print(verifica_tres_aulas_seguidas(len(configuracao), lista_de_vertices))
+    print(calcula_funcao_objetivo(len(configuracao), lista_de_vertices, preferencias_professor))
