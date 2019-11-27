@@ -62,11 +62,6 @@ def simulated_annealing(S0, T0, M, P, L, alpha):
     return S
 
 
-def atualiza(lista):
-    pass
-    # for time
-
-
 def calcula_cor(configuracao, horario, dia):  # [11:40...], 7:00, Segunda
     dia_index = 0
     if dia == 'Segunda':
@@ -81,6 +76,34 @@ def calcula_cor(configuracao, horario, dia):  # [11:40...], 7:00, Segunda
         dia_index = 4
 
     return configuracao.index(horario) + 1 + (len(configuracao) * dia_index)
+
+
+def verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, cor_1, cor_2):
+    return (cor_1 - 1) // quantidade_aulas_dia == (cor_2 - 1) // quantidade_aulas_dia
+
+
+def verifica_tres_aulas_seguidas(quantidade_aulas_dia, lista_vertices):
+    quantidade_tres_aulas_seguidas = 0
+    for vertice_i in lista_de_vertices:
+        for vertice_j in lista_de_vertices:
+            for vertice_k in lista_de_vertices:
+                if vertice_i.professor == vertice_j.professor \
+                        and vertice_i.professor == vertice_k.professor \
+                        and vertice_i.turma == vertice_j.turma \
+                        and vertice_i.turma == vertice_k.turma \
+                        and vertice_i.cor == vertice_j.cor - 1 \
+                        and vertice_i.cor == vertice_k.cor - 2 \
+                        and verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, vertice_i.cor, vertice_j.cor) \
+                        and verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, vertice_i.cor, vertice_k.cor):
+                    quantidade_tres_aulas_seguidas += 1
+    return quantidade_tres_aulas_seguidas
+
+
+def verifica_existe_aula_cor(lista_vertices, professor, turma, cor):
+    for vertice in lista_de_vertices:
+        if vertice.professor == professor and vertice.turma == turma and vertice.cor == cor:
+            return True
+    return False
 
 
 def le(xlsx, planilha):
@@ -137,13 +160,21 @@ def cria_arestas(lista_de_vertices):
     return lista_de_arestas
 
 
-def checa_factibilidade(lista_de_vertices, lista_de_arestas):
+def checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor):
     for vertice in lista_de_vertices:
         lista_de_adjacentes = lista_de_arestas[vertice.id][1]
         for adjacente in lista_de_adjacentes:
             if lista_de_vertices[adjacente].cor is not None:
                 if lista_de_vertices[adjacente].cor == vertice.cor:
                     return False
+
+    # Verifica se algum professor esta alocado em algum horario de restricao dele
+    for vertice in lista_de_vertices:
+        for restricao in restricoes_professor:
+            for cor in restricao[1]:
+                if restricao[0] == vertice.professor and vertice.cor == cor:
+                    return False
+
     return True
 
 
@@ -163,7 +194,7 @@ def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, 
             if lista_de_vertices[aresta[0]].professor == dado[0]:
                 for cor in dado[1]:
                     lista_de_vertices[aresta[0]].cor = cor
-                    if checa_factibilidade(lista_de_vertices, lista_de_arestas):
+                    if checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor):
                         break
                     else:
                         lista_de_vertices[aresta[0]].cor = None
@@ -172,25 +203,60 @@ def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, 
         cor = 1
         if lista_de_vertices[e[0]].cor is None:
             lista_de_vertices[e[0]].cor = cor
-            while not checa_factibilidade(lista_de_vertices, lista_de_arestas):
+            while not checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor):
                 cor += 1
                 lista_de_vertices[e[0]].cor = cor
 
     return lista_de_vertices
 
 
-if __name__ == '__main__':
-    # xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
-    xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
+def calcula_quantidade_de_cores(lista_de_vertices):
+    maior_cor = -1
 
-    professor_restricoes = le(xlsx, 'Restricao')
-    professor_preferecias = le(xlsx, 'Preferencias')
+    for vertice in lista_de_vertices:
+        if vertice.cor > maior_cor:
+            maior_cor = vertice.cor
+
+    return maior_cor
+
+
+def get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices):
+    print(preferencias_professor)
+    preferencias_atendidas = 0
+    for preferencia in preferencias_professor:
+        for cor in preferencia[1]:
+            for vertice in lista_de_vertices:
+                if preferencia[0] == vertice.professor and vertice.cor == cor:
+                    preferencias_atendidas += 1
+
+    quantidade_preferencias = sum(len(preferencia[1]) for preferencia in preferencias_professor)
+
+    return quantidade_preferencias - preferencias_atendidas
+
+
+if __name__ == '__main__':
+    xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
+    # xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
+    # xlsx = pd.ExcelFile("./instances/Escola_B.xlsx")
+    # xlsx = pd.ExcelFile("./instances/Escola_C.xlsx")
+    # xlsx = pd.ExcelFile("./instances/Escola_D.xlsx")
+
+    restricoes_professor = le(xlsx, 'Restricao')
+    preferencias_professor = le(xlsx, 'Preferencias')
     restricoes_turma = le(xlsx, 'Restricoes Turma')
+    configuracao = pd.read_excel(xlsx, sheet_name='Configuracoes').values
 
     lista_de_vertices = cria_vertices(xlsx)
     lista_de_arestas = cria_arestas(lista_de_vertices)
 
-    print(lista_de_vertices)
+    lista_de_vertices = colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas,
+                                                               restricoes_professor,
+                                                               preferencias_professor)
     # print(lista_de_arestas)
-    colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, professor_restricoes,
-                                           professor_preferecias)
+    print(calcula_quantidade_de_cores(lista_de_vertices))
+
+    # print(get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices))
+    print(lista_de_vertices)
+    # print(restricoes_professor)
+
+    print(verifica_tres_aulas_seguidas(len(configuracao), lista_de_vertices))
