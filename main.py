@@ -8,8 +8,9 @@ import pandas as pd
 
 class Vertice:
     """
-
+    Objeto Vertice para a fácil manipulação dos de horários no grafo.
     """
+
     def __init__(self, identificador, professor, materia, turma, cor):
         self.id = identificador
         self.professor = professor
@@ -19,8 +20,9 @@ class Vertice:
 
     def __repr__(self):
         """
-
-        :return:
+        Função responsável por retornar a representação do objetvo Vertico como
+        um dicionário de dados.
+        :return:    Retornar uma string com o dicionário dos dados do objeto Vertice.
         """
         return str(self.__dict__)
 
@@ -29,9 +31,10 @@ class Vertice:
 
 def perturba_solucao(lista_de_arestas):
     """
-
+    Função responsável por realizar a perturbação da solução utilizada no Simulated
+    Annealing para a busca de uma nova solução melhor que a já encontrada.
     :param lista_de_arestas:
-    :return:
+    :return:    Retorna a nova lista de arestas
     """
     lista_de_arestas.sort(key=lambda tup: len(tup[1]), reverse=True)
     indice_1 = random.randint(0, len(lista_de_arestas) // 2)
@@ -46,7 +49,10 @@ def perturba_solucao(lista_de_arestas):
 def simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turmas, preferencias,
                         temperatura_inicial, iteracoes, perturbacoes_iteracao, alpha, quantidade_aulas_dia):
     """
-
+    É uma meta-heurística. Esta função busca realizar a alocação de horários utilizando o
+    Simulated Annealing. O simulated annealing é uma meta-heurística para otimização que
+    consiste numa técnica de busca local probabilística, e se fundamenta numa analogia com
+    a termodinâmica.
     :param lista_de_vertices:
     :param lista_de_arestas:
     :param restricoes_professor:
@@ -74,10 +80,12 @@ def simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professo
             vertices_solucao_i = colore_grafo(cPickle.loads(cPickle.dumps(lista_de_vertices)), S_i,
                                               restricoes_professor, restricoes_turmas)
             cor_Si = calcula_quantidade_de_cores(vertices_solucao_i)
+            # Calcula função objetivo para a nova solução
             f_Si = calcula_funcao_objetivo(quantidade_aulas_dia, vertices_solucao_i, preferencias)
             vertices_solucao_atual = colore_grafo(cPickle.loads(cPickle.dumps(lista_de_vertices)), solucao_atual,
                                                   restricoes_professor, restricoes_turmas)
             cor_S = calcula_quantidade_de_cores(vertices_solucao_atual)
+            # Calcula a função objetivo para a melhor solução local encontrada
             f_S = calcula_funcao_objetivo(quantidade_aulas_dia, vertices_solucao_atual, preferencias)
 
             # Calcula delta de Fi
@@ -105,7 +113,8 @@ def simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professo
 
 def calcula_cor(configuracao, horario, dia):  # [11:40...], 7:00, Segunda
     """
-
+    Função responsável por realizar o cálculo da cor (horário de aula) de acordo
+    com o horário ('11:00' por exemplo) e o dia da semana ('Segunda' por exemplo)
     :param configuracao:
     :param horario:
     :param dia:
@@ -128,7 +137,9 @@ def calcula_cor(configuracao, horario, dia):  # [11:40...], 7:00, Segunda
 
 def le(xlsx, planilha):
     """
-
+    Função responsável por ler um arquivo .xlsx e realizar a leitura de uma planilha
+    de forma genérica. O arquivo .xlsx ('Escola_A.xlsx' por exemplo) e a planilha a ser
+    lida ('Restricoes Turma' por exemplo) são informados por parâmetro.
     :param xlsx:
     :param planilha:
     :return:
@@ -158,7 +169,9 @@ def le(xlsx, planilha):
 
 def cria_vertices(xlsx):
     """
-
+    Função responsável por criar os vértices apartir da planila de Dados do
+     arquivo .xlsx. Cada vétice possui um id, professor, materia, turma e uma cor
+     que inicialmente é inicializado como None.
     :param xlsx:
     :return:
     """
@@ -177,7 +190,7 @@ def cria_vertices(xlsx):
 
 def cria_arestas(lista_de_vertices):
     """
-
+    Função responsável por criar a lista de arestas a partir da lista de vértices.
     :param lista_de_vertices:
     :return:
     """
@@ -200,7 +213,7 @@ def cria_arestas(lista_de_vertices):
 
 def checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
     """
-
+    Função responsável por verificar a factibilidade de alocar um novo horário.
     :param lista_de_vertices:
     :param lista_de_arestas:
     :param restricoes_professor:
@@ -218,7 +231,7 @@ def checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professo
                 if lista_de_vertices[adjacente].cor == vertice.cor:
                     return False
 
-    # Verifica se algum professor esta alocado em algum horario de restricao dele
+    # Verifica se algum professor esta alocado em algum horário de restricao dele
     for vertice in lista_de_vertices:
         for restricao in restricoes_professor:
             for cor in restricao[1]:
@@ -238,7 +251,9 @@ def checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professo
 def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma,
                                            preferencias):
     """
-
+    Esta função é uma hurística de coloração. Esta função é responsável por realizar a coloração
+    (alocação dos horários) dos vértices que possuem o maior número de restrições por professor,
+    ou seja, os vértices que contêm professor com maiores restrições serão coloridos primeiros.
     :param lista_de_vertices:
     :param lista_de_arestas:
     :param restricoes_professor:
@@ -279,7 +294,9 @@ def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, 
 
 def colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma, preferencias):
     """
-
+    Esta função é uma hurística de coloração. Esta função é responsável por realizar a coloração
+    (alocação dos horários) dos vértices que possuem o maior, ou seja, o vértice que possui
+    mais arestas ligadas a ele.
     :param lista_de_vertices:
     :param lista_de_arestas:
     :param restricoes_professor:
@@ -312,7 +329,8 @@ def colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas, restricoes_prof
 
 def colore_grafo(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
     """
-
+    Função responsável por atribuir uma cor para cada vértice do grafo, definindo o horario de
+    cada aula.
     :param lista_de_vertices:
     :param lista_de_arestas:
     :param restricoes_professor:
@@ -336,7 +354,8 @@ def colore_grafo(lista_de_vertices, lista_de_arestas, restricoes_professor, rest
 
 def calcula_quantidade_de_cores(lista_de_vertices):
     """
-
+    Função responsável por informar a quantidade de cores (horários) presentes no
+    grafo.
     :param lista_de_vertices:
     :return:
     """
@@ -353,19 +372,23 @@ def calcula_quantidade_de_cores(lista_de_vertices):
 
 def calcula_funcao_objetivo(quantidade_aulas_dia, lista_de_vertices, preferencias_professor):
     """
-
+    Função responsável por calcular o valor de função objetivo de acordo com a quantidade
+    de preferencias não atendidas, quantidade de três aulas seguidas e quantidade de
+    lacunas entre as aulas.
     :param quantidade_aulas_dia:
     :param lista_de_vertices:
     :param preferencias_professor:
     :return:
     """
-    return get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices) + verifica_tres_aulas_seguidas(
-        quantidade_aulas_dia, lista_de_vertices) + verifica_lacuna_aula(quantidade_aulas_dia, lista_de_vertices)
+    return quantidade_preferencias_nao_atendidas(preferencias_professor, lista_de_vertices) + \
+           verifica_tres_aulas_seguidas(quantidade_aulas_dia, lista_de_vertices) + \
+           verifica_lacuna_aula(quantidade_aulas_dia, lista_de_vertices)
 
 
-def get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices):
+def quantidade_preferencias_nao_atendidas(preferencias_professor, lista_de_vertices):
     """
-
+    Função responsável por verificar se as preferencias dos professores sobre as
+    aulas não foram atendidas.
     :param preferencias_professor:
     :param lista_de_vertices:
     :return:
@@ -384,7 +407,8 @@ def get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices):
 
 def verifica_tres_aulas_seguidas(quantidade_aulas_dia, lista_de_vertices):
     """
-
+    Função responsável verificar se existe três aulas seguidas da mesma matéria
+    para a mesma turma e realizar o somatório das mesmas.
     :param quantidade_aulas_dia:
     :param lista_de_vertices:
     :return:
@@ -407,7 +431,8 @@ def verifica_tres_aulas_seguidas(quantidade_aulas_dia, lista_de_vertices):
 
 def verifica_lacuna_aula(quantidade_de_aulas, lista_de_vertices):
     """
-
+    Função responsável por veriricar se existe uma lacuna entre aulas
+    e realizar o somatório das mesmas.
     :param quantidade_de_aulas:
     :param lista_de_vertices:
     :return:
@@ -423,7 +448,8 @@ def verifica_lacuna_aula(quantidade_de_aulas, lista_de_vertices):
 
 def verifica_existe_aula_cor(lista_de_vertices, professor, turma, cor):
     """
-
+    Função responsável por verificar se existe um horario alocado para um professor
+    em uma determinada turma.
     :param lista_de_vertices:
     :param professor:
     :param turma:
@@ -438,7 +464,7 @@ def verifica_existe_aula_cor(lista_de_vertices, professor, turma, cor):
 
 def verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, cor_1, cor_2):
     """
-
+    Função reponsável por veirificar se há duas aulas alocadas no mesmo dia.
     :param quantidade_aulas_dia:
     :param cor_1:
     :param cor_2:
@@ -451,8 +477,8 @@ def verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, cor_1, cor_2):
 
 def main():
     """
-
-    :return:
+    Método principal do programa. Realiza leitura da instancia do arquivo .xlsx
+    :return:    None
     """
     begin = time.time()
     # xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
