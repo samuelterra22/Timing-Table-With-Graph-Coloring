@@ -508,13 +508,13 @@ def main():
                                                               restricoes_turma, preferencias_professor, 100, 2, 10,
                                                               0.85, len(configuracao))
 
-    print(lista_de_arestas)
-    print(calcula_quantidade_de_cores(lista_de_vertices))
-    print(calcula_funcao_objetivo(len(configuracao), lista_de_vertices, preferencias_professor))
-    print(lista_de_vertices)
+    print("lista_de_arestas = ", lista_de_arestas)
+    print("calcula_quantidade_de_cores = ", calcula_quantidade_de_cores(lista_de_vertices))
+    print("calcula_funcao_objetivo = ", calcula_funcao_objetivo(len(configuracao), lista_de_vertices, preferencias_professor))
+    print("lista_de_vertices = ", lista_de_vertices)
     # print(restricoes_professor)
 
-    print(time.time() - begin)
+    print("time = ", time.time() - begin)
 
 
 if __name__ == '__main__':
