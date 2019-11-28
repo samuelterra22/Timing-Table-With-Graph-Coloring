@@ -5,6 +5,13 @@ from math import exp
 
 import pandas as pd
 
+"""
+Ideia principal do algoritmo:
+
+Foram implementadas 2 heuríticas e 1 meta-heurística..    
+
+"""
+
 
 class Vertice:
     """
@@ -60,14 +67,19 @@ def simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professo
     :param restricoes_professor:    Lista de tuplas contendo as restrições de cada professor sendo
                                     que a primeira posição da tupla é o nome do professor e a
                                     segunda posição é a lista de cores que ele não pode dar aula.
-    :param restricoes_turmas:
-    :param preferencias:
-    :param temperatura_inicial:
-    :param iteracoes:
-    :param perturbacoes_iteracao:
-    :param alpha:
-    :param quantidade_aulas_dia:
-    :return:
+    :param restricoes_turmas:       Lista de tuplas contendo as restrições de aulas das turmas,
+                                    sendo que a primeira posição da tupla é a turma e a segunda
+                                    posição é a lista de cores que a turma não pode ter aula.
+    :param preferencias:            Lista de tuplas com as preferencias de aulas de cada professor
+                                    sendo a primeira posição de cada tupla o nome do professor e
+                                    a segunda posição sendo a lista de preferências de aulas do
+                                    professor.
+    :param temperatura_inicial:     Temperatura inicial do 'cozimento'.
+    :param iteracoes:               Número máximo de iterações.
+    :param perturbacoes_iteracao:   Número máximo de pertubações por cada iteração.
+    :param alpha:                   Float sendo o fator de decaimento da temperatura (0.85 por exemplo)
+    :param quantidade_aulas_dia:    Número de horários de início de aulas a cada dia.
+    :return:                        Retorna a melhor solução encontrada (melhor alocação de horário).
     """
     solucao_atual = cPickle.loads(cPickle.dumps(lista_de_arestas))
     best_solucao = cPickle.loads(cPickle.dumps(solucao_atual))
@@ -119,10 +131,10 @@ def calcula_cor(configuracao, horario, dia):  # [11:40...], 7:00, Segunda
     """
     Função responsável por realizar o cálculo da cor (horário de aula) de acordo
     com o horário ('11:00' por exemplo) e o dia da semana ('Segunda' por exemplo)
-    :param configuracao:
-    :param horario:
-    :param dia:
-    :return:
+    :param configuracao:    Configuração contendo horários de início de aulas a cada dia.
+    :param horario:         Horário da aula, '11:40' por exemplo.
+    :param dia:             Dua da aula, 'Segunda' por exemplo.
+    :return:                Retorna um número (cor) que representa o horário de aula na semana.
     """
     dia_index = 0
     if dia == 'Segunda':
@@ -144,9 +156,9 @@ def le(xlsx, planilha):
     Função responsável por ler um arquivo .xlsx e realizar a leitura de uma planilha
     de forma genérica. O arquivo .xlsx ('Escola_A.xlsx' por exemplo) e a planilha a ser
     lida ('Restricoes Turma' por exemplo) são informados por parâmetro.
-    :param xlsx:
-    :param planilha:
-    :return:
+    :param xlsx:        Caminho de leitura do arquivo .xlsx.
+    :param planilha:    Planilha (tab) do arquivo xlsx a ser lido.
+    :return:            Retorna uma lista de tuplas com as configurações da planilha informada.
     """
     data_frame_dados = pd.read_excel(xlsx, sheet_name=planilha)
     configuracao = pd.read_excel(xlsx, sheet_name='Configuracoes')
@@ -176,8 +188,8 @@ def cria_vertices(xlsx):
     Função responsável por criar os vértices apartir da planila de Dados do
      arquivo .xlsx. Cada vétice possui um id, professor, materia, turma e uma cor
      que inicialmente é inicializado como None.
-    :param xlsx:
-    :return:
+    :param xlsx:    ExcelFile do arquivo xlsx.
+    :return:        Retorna a lista de vértices de acordo com o arquivo de entrada.
     """
     data_frame_dados = pd.read_excel(xlsx, sheet_name='Dados')
 
@@ -227,7 +239,9 @@ def checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professo
     :param restricoes_professor:    Lista de tuplas contendo as restrições de cada professor sendo
                                     que a primeira posição da tupla é o nome do professor e a
                                     segunda posição é a lista de cores que ele não pode dar aula.
-    :param restricoes_turma:
+    :param restricoes_turma:        Lista de tuplas contendo as restrições de aulas das turmas,
+                                    sendo que a primeira posição da tupla é a turma e a segunda
+                                    posição é a lista de cores que a turma não pode ter aula.
     :return:
     """
     lista_de_adjacentes = []
@@ -271,8 +285,13 @@ def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, 
     :param restricoes_professor:    Lista de tuplas contendo as restrições de cada professor sendo
                                     que a primeira posição da tupla é o nome do professor e a
                                     segunda posição é a lista de cores que ele não pode dar aula.
-    :param restricoes_turma:
-    :param preferencias:
+    :param restricoes_turma:        Lista de tuplas contendo as restrições de aulas das turmas,
+                                    sendo que a primeira posição da tupla é a turma e a segunda
+                                    posição é a lista de cores que a turma não pode ter aula.
+    :param preferencias:            Lista de tuplas com as preferencias de aulas de cada professor
+                                    sendo a primeira posição de cada tupla o nome do professor e
+                                    a segunda posição sendo a lista de preferências de aulas do
+                                    professor.
     :return:
     """
     ordem_arestas = []
@@ -318,8 +337,13 @@ def colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas, restricoes_prof
     :param restricoes_professor:    Lista de tuplas contendo as restrições de cada professor sendo
                                     que a primeira posição da tupla é o nome do professor e a
                                     segunda posição é a lista de cores que ele não pode dar aula.
-    :param restricoes_turma:
-    :param preferencias:
+    :param restricoes_turma:        Lista de tuplas contendo as restrições de aulas das turmas,
+                                    sendo que a primeira posição da tupla é a turma e a segunda
+                                    posição é a lista de cores que a turma não pode ter aula.
+    :param preferencias:            Lista de tuplas com as preferencias de aulas de cada professor
+                                    sendo a primeira posição de cada tupla o nome do professor e
+                                    a segunda posição sendo a lista de preferências de aulas do
+                                    professor.
     :return:
     """
     ordem_arestas = cPickle.loads(cPickle.dumps(lista_de_arestas))
@@ -356,7 +380,9 @@ def colore_grafo(lista_de_vertices, lista_de_arestas, restricoes_professor, rest
     :param restricoes_professor:    Lista de tuplas contendo as restrições de cada professor sendo
                                     que a primeira posição da tupla é o nome do professor e a
                                     segunda posição é a lista de cores que ele não pode dar aula.
-    :param restricoes_turma:
+    :param restricoes_turma:        Lista de tuplas contendo as restrições de aulas das turmas,
+                                    sendo que a primeira posição da tupla é a turma e a segunda
+                                    posição é a lista de cores que a turma não pode ter aula.
     :return:
     """
     ordem_arestas = cPickle.loads(cPickle.dumps(lista_de_arestas))
@@ -399,11 +425,14 @@ def calcula_funcao_objetivo(quantidade_aulas_dia, lista_de_vertices, preferencia
     Função responsável por calcular o valor de função objetivo de acordo com a quantidade
     de preferencias não atendidas, quantidade de três aulas seguidas e quantidade de
     lacunas entre as aulas.
-    :param quantidade_aulas_dia:
+    :param quantidade_aulas_dia:    Número de horários de início de aulas a cada dia.
     :param lista_de_vertices:       A lista de vértices, com o mesmo sendo uma tupla onde a
                                     primeira posição contém o id do vértice e na segunda posição,
                                     a lista de ids dos vértices adjacentes.
-    :param preferencias_professor:
+    :param preferencias_professor:  Lista de tuplas com as preferencias de aulas de cada professor
+                                    sendo a primeira posição de cada tupla o nome do professor e
+                                    a segunda posição sendo a lista de preferências de aulas do
+                                    professor.
     :return:
     """
     return quantidade_preferencias_nao_atendidas(preferencias_professor, lista_de_vertices) + \
@@ -415,7 +444,10 @@ def quantidade_preferencias_nao_atendidas(preferencias_professor, lista_de_verti
     """
     Função responsável por verificar se as preferencias dos professores sobre as
     aulas não foram atendidas.
-    :param preferencias_professor:
+    :param preferencias_professor:  Lista de tuplas com as preferencias de aulas de cada professor
+                                    sendo a primeira posição de cada tupla o nome do professor e
+                                    a segunda posição sendo a lista de preferências de aulas do
+                                    professor.
     :param lista_de_vertices:       A lista de vértices, com o mesmo sendo uma tupla onde a
                                     primeira posição contém o id do vértice e na segunda posição,
                                     a lista de ids dos vértices adjacentes.
@@ -437,7 +469,7 @@ def verifica_tres_aulas_seguidas(quantidade_aulas_dia, lista_de_vertices):
     """
     Função responsável verificar se existe três aulas seguidas da mesma matéria
     para a mesma turma e realizar o somatório das mesmas.
-    :param quantidade_aulas_dia:
+    :param quantidade_aulas_dia:    Número de horários de início de aulas a cada dia.
     :param lista_de_vertices:       A lista de vértices, com o mesmo sendo uma tupla onde a
                                     primeira posição contém o id do vértice e na segunda posição,
                                     a lista de ids dos vértices adjacentes.
@@ -463,7 +495,7 @@ def verifica_lacuna_aula(quantidade_de_aulas, lista_de_vertices):
     """
     Função responsável por veriricar se existe uma lacuna entre aulas
     e realizar o somatório das mesmas.
-    :param quantidade_de_aulas:
+    :param quantidade_de_aulas: Número de horários de início de aulas a cada dia.
     :param lista_de_vertices:   A lista de vértices, com o mesmo sendo uma tupla onde a
                                 primeira posição contém o id do vértice e na segunda posição,
                                 a lista de ids dos vértices adjacentes.
@@ -485,9 +517,9 @@ def verifica_existe_aula_cor(lista_de_vertices, professor, turma, cor):
     :param lista_de_vertices:   A lista de vértices, com o mesmo sendo uma tupla onde a
                                 primeira posição contém o id do vértice e na segunda posição,
                                 a lista de ids dos vértices adjacentes.
-    :param professor:
-    :param turma:
-    :param cor:
+    :param professor:           Nome do professor a se verificar no vértice.
+    :param turma:               Nome da turma  a se verificar no vértice.
+    :param cor:                 Cor a se verificar no vértice.
     :return:
     """
     for vertice in lista_de_vertices:
@@ -499,9 +531,9 @@ def verifica_existe_aula_cor(lista_de_vertices, professor, turma, cor):
 def verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, cor_1, cor_2):
     """
     Função reponsável por veirificar se há duas aulas alocadas no mesmo dia.
-    :param quantidade_aulas_dia:
-    :param cor_1:
-    :param cor_2:
+    :param quantidade_aulas_dia:    Número de horários de início de aulas a cada dia.
+    :param cor_1:                   Cor 1 a ser consutada.
+    :param cor_2:                   Cor 2 a ser comparada com cor 1
     :return:
     """
     return (cor_1 - 1) // quantidade_aulas_dia == (cor_2 - 1) // quantidade_aulas_dia
@@ -511,10 +543,13 @@ def verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, cor_1, cor_2):
 
 def main():
     """
-    Método principal do programa. Realiza leitura da instancia do arquivo .xlsx
+    Método principal do programa. Realiza leitura da instancia do arquivo .xlsx.
     :return:    None
     """
+    # Guarda o horario de inicio de execução do algoritmo
     begin = time.time()
+
+    # Instancias
     # xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
     xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
     # xlsx = pd.ExcelFile("./instances/Escola_B.xlsx")
@@ -529,26 +564,31 @@ def main():
     lista_de_vertices = cria_vertices(xlsx)
     lista_de_arestas = cria_arestas(lista_de_vertices)
 
-    # solucao, lista_de_arestas = colore_grafo_maior_grau(cPickle.loads(cPickle.dumps(lista_de_vertices)),
-    #                                                     lista_de_arestas, restricoes_professor,
-    #                                                     restricoes_turma, preferencias_professor)
+    # solucao, lista_de_arestas = colore_grafo_maior_grau(
+    #     cPickle.loads(cPickle.dumps(lista_de_vertices)),
+    #     lista_de_arestas, restricoes_professor,
+    #     restricoes_turma, preferencias_professor)
 
-    # solucao, lista_de_arestas = colore_grafo_maior_restricao_professor(cPickle.loads(cPickle.dumps(lista_de_vertices)),
-    #                                                                    lista_de_arestas, restricoes_professor,
-    #                                                                    restricoes_turma, preferencias_professor)
-    # print(calcula_quantidade_de_cores(solucao))
-    # print(calcula_funcao_objetivo(len(configuracao), solucao, preferencias_professor))
-    lista_de_arestas, lista_de_vertices = simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professor,
-                                                              restricoes_turma, preferencias_professor, 100, 2, 2,
-                                                              0.85, len(configuracao))
+    # solucao, lista_de_arestas = colore_grafo_maior_restricao_professor(
+    #     cPickle.loads(cPickle.dumps(lista_de_vertices)),
+    #     lista_de_arestas, restricoes_professor,
+    #     restricoes_turma, preferencias_professor)
+
+    lista_de_arestas, solucao = simulated_annealing(
+        lista_de_vertices, lista_de_arestas, restricoes_professor,
+        restricoes_turma, preferencias_professor, 100, 5, 10,
+        0.85, len(configuracao))
 
     print("lista_de_arestas = ", lista_de_arestas)
-    print("calcula_quantidade_de_cores = ", calcula_quantidade_de_cores(lista_de_vertices))
-    print("calcula_funcao_objetivo = ", calcula_funcao_objetivo(len(configuracao), lista_de_vertices, preferencias_professor))
-    print("lista_de_vertices = ", lista_de_vertices)
+    print("calcula_quantidade_de_cores = ", calcula_quantidade_de_cores(solucao))
+    print("calcula_funcao_objetivo = ",
+          calcula_funcao_objetivo(len(configuracao), solucao, preferencias_professor))
+    print("lista_de_vertices = ", solucao)
     print("restricoes_professor = ", restricoes_professor)
     print("restricoes_turma = ", restricoes_turma)
+    print("preferencias_professor = ", preferencias_professor)
 
+    # Tempo de execução do algoritmo
     print("time = ", time.time() - begin)
 
 
