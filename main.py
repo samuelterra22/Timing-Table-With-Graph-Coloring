@@ -624,7 +624,7 @@ def main(metodo_solucao):
 
     # ----------------------- EXIBE SAIDA DO ALGORITMO ------------------------
 
-    print("Tempo de execução da busca da solução:\t", time.time() - begin)
+    print("Tempo de execução da busca da solução:\t", round(time.time() - begin, 2), "segundos")
     print("Quantidade de cores utilizadas =\t\t", calcula_quantidade_de_cores(solucao))
     print("Valor de função objetivo =\t\t\t\t",
           calcula_funcao_objetivo(len(configuracao), solucao, preferencias_professor))
