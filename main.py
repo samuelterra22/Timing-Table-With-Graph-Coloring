@@ -7,6 +7,9 @@ import pandas as pd
 
 
 class Vertice:
+    """
+
+    """
     def __init__(self, identificador, professor, materia, turma, cor):
         self.id = identificador
         self.professor = professor
@@ -15,12 +18,21 @@ class Vertice:
         self.cor = cor
 
     def __repr__(self):
+        """
+
+        :return:
+        """
         return str(self.__dict__)
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 
 def perturba_solucao(lista_de_arestas):
+    """
+
+    :param lista_de_arestas:
+    :return:
+    """
     lista_de_arestas.sort(key=lambda tup: len(tup[1]), reverse=True)
     indice_1 = random.randint(0, len(lista_de_arestas) // 2)
     indice_2 = random.randint(len(lista_de_arestas) // 2, len(lista_de_arestas) - 1)
@@ -33,6 +45,20 @@ def perturba_solucao(lista_de_arestas):
 
 def simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turmas, preferencias,
                         temperatura_inicial, iteracoes, perturbacoes_iteracao, alpha, quantidade_aulas_dia):
+    """
+
+    :param lista_de_vertices:
+    :param lista_de_arestas:
+    :param restricoes_professor:
+    :param restricoes_turmas:
+    :param preferencias:
+    :param temperatura_inicial:
+    :param iteracoes:
+    :param perturbacoes_iteracao:
+    :param alpha:
+    :param quantidade_aulas_dia:
+    :return:
+    """
     solucao_atual = cPickle.loads(cPickle.dumps(lista_de_arestas))
     best_solucao = cPickle.loads(cPickle.dumps(solucao_atual))
     vertices_solucao_best = colore_grafo(cPickle.loads(cPickle.dumps(lista_de_vertices)), best_solucao,
@@ -78,6 +104,13 @@ def simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professo
 
 
 def calcula_cor(configuracao, horario, dia):  # [11:40...], 7:00, Segunda
+    """
+
+    :param configuracao:
+    :param horario:
+    :param dia:
+    :return:
+    """
     dia_index = 0
     if dia == 'Segunda':
         dia_index = 0
@@ -94,6 +127,12 @@ def calcula_cor(configuracao, horario, dia):  # [11:40...], 7:00, Segunda
 
 
 def le(xlsx, planilha):
+    """
+
+    :param xlsx:
+    :param planilha:
+    :return:
+    """
     data_frame_dados = pd.read_excel(xlsx, sheet_name=planilha)
     configuracao = pd.read_excel(xlsx, sheet_name='Configuracoes')
 
@@ -118,6 +157,11 @@ def le(xlsx, planilha):
 
 
 def cria_vertices(xlsx):
+    """
+
+    :param xlsx:
+    :return:
+    """
     data_frame_dados = pd.read_excel(xlsx, sheet_name='Dados')
 
     lista_de_vertices = []
@@ -132,6 +176,11 @@ def cria_vertices(xlsx):
 
 
 def cria_arestas(lista_de_vertices):
+    """
+
+    :param lista_de_vertices:
+    :return:
+    """
     lista_de_arestas = []
 
     for vertice in lista_de_vertices:
@@ -150,6 +199,14 @@ def cria_arestas(lista_de_vertices):
 # ----------------------------------------------------------------------------------------------------------------------
 
 def checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
+    """
+
+    :param lista_de_vertices:
+    :param lista_de_arestas:
+    :param restricoes_professor:
+    :param restricoes_turma:
+    :return:
+    """
     lista_de_adjacentes = []
     for vertice in lista_de_vertices:
         for aresta in lista_de_arestas:
@@ -180,6 +237,15 @@ def checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professo
 
 def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma,
                                            preferencias):
+    """
+
+    :param lista_de_vertices:
+    :param lista_de_arestas:
+    :param restricoes_professor:
+    :param restricoes_turma:
+    :param preferencias:
+    :return:
+    """
     ordem_arestas = []
     restricoes_professor.sort(key=lambda tup: len(tup[1]), reverse=True)
     for restricao in restricoes_professor:
@@ -212,6 +278,15 @@ def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, 
 
 
 def colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma, preferencias):
+    """
+
+    :param lista_de_vertices:
+    :param lista_de_arestas:
+    :param restricoes_professor:
+    :param restricoes_turma:
+    :param preferencias:
+    :return:
+    """
     ordem_arestas = cPickle.loads(cPickle.dumps(lista_de_arestas))
     ordem_arestas.sort(key=lambda tup: len(tup[1]), reverse=True)
     for dado in preferencias:
@@ -236,6 +311,14 @@ def colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas, restricoes_prof
 
 
 def colore_grafo(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
+    """
+
+    :param lista_de_vertices:
+    :param lista_de_arestas:
+    :param restricoes_professor:
+    :param restricoes_turma:
+    :return:
+    """
     ordem_arestas = cPickle.loads(cPickle.dumps(lista_de_arestas))
     for e in ordem_arestas:
         cor = 1
@@ -252,6 +335,11 @@ def colore_grafo(lista_de_vertices, lista_de_arestas, restricoes_professor, rest
 
 
 def calcula_quantidade_de_cores(lista_de_vertices):
+    """
+
+    :param lista_de_vertices:
+    :return:
+    """
     cores = []
     for vertice in lista_de_vertices:
         if vertice.cor is None:
@@ -264,11 +352,24 @@ def calcula_quantidade_de_cores(lista_de_vertices):
 
 
 def calcula_funcao_objetivo(quantidade_aulas_dia, lista_de_vertices, preferencias_professor):
+    """
+
+    :param quantidade_aulas_dia:
+    :param lista_de_vertices:
+    :param preferencias_professor:
+    :return:
+    """
     return get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices) + verifica_tres_aulas_seguidas(
         quantidade_aulas_dia, lista_de_vertices) + verifica_lacuna_aula(quantidade_aulas_dia, lista_de_vertices)
 
 
 def get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices):
+    """
+
+    :param preferencias_professor:
+    :param lista_de_vertices:
+    :return:
+    """
     preferencias_atendidas = 0
     for preferencia in preferencias_professor:
         for cor in preferencia[1]:
@@ -282,6 +383,12 @@ def get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices):
 
 
 def verifica_tres_aulas_seguidas(quantidade_aulas_dia, lista_de_vertices):
+    """
+
+    :param quantidade_aulas_dia:
+    :param lista_de_vertices:
+    :return:
+    """
     quantidade_tres_aulas_seguidas = 0
     for vertice_i in lista_de_vertices:
         for vertice_j in lista_de_vertices:
@@ -299,6 +406,12 @@ def verifica_tres_aulas_seguidas(quantidade_aulas_dia, lista_de_vertices):
 
 
 def verifica_lacuna_aula(quantidade_de_aulas, lista_de_vertices):
+    """
+
+    :param quantidade_de_aulas:
+    :param lista_de_vertices:
+    :return:
+    """
     quantidade_lacunas = 0
     for vertice in lista_de_vertices:
         if not verifica_existe_aula_cor(lista_de_vertices, vertice.professor, vertice.turma, vertice.cor + 1) \
@@ -309,6 +422,14 @@ def verifica_lacuna_aula(quantidade_de_aulas, lista_de_vertices):
 
 
 def verifica_existe_aula_cor(lista_de_vertices, professor, turma, cor):
+    """
+
+    :param lista_de_vertices:
+    :param professor:
+    :param turma:
+    :param cor:
+    :return:
+    """
     for vertice in lista_de_vertices:
         if vertice.professor == professor and vertice.turma == turma and vertice.cor == cor:
             return True
@@ -316,12 +437,23 @@ def verifica_existe_aula_cor(lista_de_vertices, professor, turma, cor):
 
 
 def verifica_duas_cores_mesmo_dia(quantidade_aulas_dia, cor_1, cor_2):
+    """
+
+    :param quantidade_aulas_dia:
+    :param cor_1:
+    :param cor_2:
+    :return:
+    """
     return (cor_1 - 1) // quantidade_aulas_dia == (cor_2 - 1) // quantidade_aulas_dia
 
 
 # ----------------------------------------------------------------------------------------------------------------------
 
 def main():
+    """
+
+    :return:
+    """
     begin = time.time()
     # xlsx = pd.ExcelFile("./instances/Exemplo.xlsx")
     xlsx = pd.ExcelFile("./instances/Escola_A.xlsx")
