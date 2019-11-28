@@ -1,5 +1,4 @@
 import _pickle as cPickle
-import copy
 import random
 import time
 from math import exp
@@ -22,16 +21,22 @@ class Vertice:
 # ----------------------------------------------------------------------------------------------------------------------
 
 def perturba_solucao(lista_de_arestas):
-    random.shuffle(lista_de_arestas)
-    return lista_de_arestas
+    lista_de_arestas.sort(key=lambda tup: len(tup[1]), reverse=True)
+    indice_1 = random.randint(0, len(lista_de_arestas) // 2)
+    indice_2 = random.randint(len(lista_de_arestas) // 2, len(lista_de_arestas) - 1)
+    nova_lista_de_arestas = lista_de_arestas[indice_1:indice_2]
+    random.shuffle(nova_lista_de_arestas)
+    nova_lista_de_arestas = lista_de_arestas[0:indice_1] + nova_lista_de_arestas + lista_de_arestas[
+                                                                                   indice_2: len(lista_de_arestas)]
+    return nova_lista_de_arestas
 
 
 def simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turmas, preferencias,
-                        temperatura_inicial, iteracoes, perturbacoes_iteracao, alpha,
-                        quantidade_aulas_dia):
-    solucao_atual = lista_de_arestas
+                        temperatura_inicial, iteracoes, perturbacoes_iteracao, alpha, quantidade_aulas_dia):
+    solucao_atual = cPickle.loads(cPickle.dumps(lista_de_arestas))
     best_solucao = cPickle.loads(cPickle.dumps(solucao_atual))
-    vertices_solucao_best = colore_grafo(copy.deepcopy(lista_de_vertices), best_solucao, restricoes_professor,
+    vertices_solucao_best = colore_grafo(cPickle.loads(cPickle.dumps(lista_de_vertices)), best_solucao,
+                                         restricoes_professor,
                                          restricoes_turmas)
     tempetura = temperatura_inicial
 
@@ -60,7 +65,7 @@ def simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professo
                     f_best = calcula_funcao_objetivo(quantidade_aulas_dia, vertices_solucao_best, preferencias)
                     if f_S < f_best:
                         best_solucao = cPickle.loads(cPickle.dumps(solucao_atual))
-                        vertices_solucao_best = copy.deepcopy(vertices_solucao_atual)
+                        vertices_solucao_best = cPickle.loads(cPickle.dumps(vertices_solucao_atual))
 
         # Atualização da temperatura (Deicaimento geométrico)
         tempetura *= alpha
@@ -101,7 +106,7 @@ def le(xlsx, planilha):
         if restricao[0] not in lista:
             lista.append(restricao[0])
 
-    lista = [(lista, []) for professor in lista]
+    lista = [(elemento, []) for elemento in lista]
 
     for elemento in lista:
         for resticao in resticoes:
@@ -203,11 +208,11 @@ def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, 
                 cor += 1
                 lista_de_vertices[e[0]].cor = cor
 
-    return lista_de_vertices
+    return lista_de_vertices, ordem_arestas
 
 
 def colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma, preferencias):
-    ordem_arestas = copy.deepcopy(lista_de_arestas)
+    ordem_arestas = cPickle.loads(cPickle.dumps(lista_de_arestas))
     ordem_arestas.sort(key=lambda tup: len(tup[1]), reverse=True)
     for dado in preferencias:
         for aresta in ordem_arestas:
@@ -227,11 +232,11 @@ def colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas, restricoes_prof
                 cor += 1
                 lista_de_vertices[e[0]].cor = cor
 
-    return lista_de_vertices
+    return lista_de_vertices, ordem_arestas
 
 
 def colore_grafo(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
-    ordem_arestas = copy.deepcopy(lista_de_arestas)
+    ordem_arestas = cPickle.loads(cPickle.dumps(lista_de_arestas))
     for e in ordem_arestas:
         cor = 1
         if lista_de_vertices[e[0]].cor is None:
@@ -332,27 +337,25 @@ def main():
     lista_de_vertices = cria_vertices(xlsx)
     lista_de_arestas = cria_arestas(lista_de_vertices)
 
-    # lista_de_vertices = colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas,
-    #                                             restricoes_professor,
-    #                                             restricoes_turma,
-    #                                             preferencias_professor)
+    # solucao, lista_de_arestas = colore_grafo_maior_grau(cPickle.loads(cPickle.dumps(lista_de_vertices)),
+    #                                                     lista_de_arestas, restricoes_professor,
+    #                                                     restricoes_turma, preferencias_professor)
 
-    # lista_de_vertices = colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas,
-    #                                             restricoes_professor,
-    #                                             restricoes_turma,
-    #                                             preferencias_professor)
-
+    # solucao, lista_de_arestas = colore_grafo_maior_restricao_professor(cPickle.loads(cPickle.dumps(lista_de_vertices)),
+    #                                                                    lista_de_arestas, restricoes_professor,
+    #                                                                    restricoes_turma, preferencias_professor)
+    # print(calcula_quantidade_de_cores(solucao))
+    # print(calcula_funcao_objetivo(len(configuracao), solucao, preferencias_professor))
     lista_de_arestas, lista_de_vertices = simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professor,
-                                                              restricoes_turma,
-                                                              preferencias_professor, 1, 10, 10, 0.85, len(configuracao))
+                                                              restricoes_turma, preferencias_professor, 100, 2, 10,
+                                                              0.85, len(configuracao))
 
     print(lista_de_arestas)
     print(calcula_quantidade_de_cores(lista_de_vertices))
-
-    # print(get_prederencias_nao_atendidas(preferencias_professor, lista_de_vertices))
+    print(calcula_funcao_objetivo(len(configuracao), lista_de_vertices, preferencias_professor))
     print(lista_de_vertices)
     # print(restricoes_professor)
-    print(calcula_funcao_objetivo(len(configuracao), lista_de_vertices, preferencias_professor))
+
     print(time.time() - begin)
 
 
