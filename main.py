@@ -33,8 +33,8 @@ def perturba_solucao(lista_de_arestas):
     """
     Função responsável por realizar a perturbação da solução utilizada no Simulated
     Annealing para a busca de uma nova solução melhor que a já encontrada.
-    :param lista_de_arestas:
-    :return:    Retorna a nova lista de arestas
+    :param lista_de_arestas:    Lista das arestas do grafo.
+    :return:                    Retorna a nova lista de arestas
     """
     lista_de_arestas.sort(key=lambda tup: len(tup[1]), reverse=True)
     indice_1 = random.randint(0, len(lista_de_arestas) // 2)
@@ -53,9 +53,13 @@ def simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professo
     Simulated Annealing. O simulated annealing é uma meta-heurística para otimização que
     consiste numa técnica de busca local probabilística, e se fundamenta numa analogia com
     a termodinâmica.
-    :param lista_de_vertices:
-    :param lista_de_arestas:
-    :param restricoes_professor:
+    :param lista_de_vertices:       A lista de vértices, com o mesmo sendo uma tupla onde a
+                                    primeira posição contém o id do vértice e na segunda posição,
+                                    a lista de ids dos vértices adjacentes.
+    :param lista_de_arestas:        Lista das arestas do grafo.
+    :param restricoes_professor:    Lista de tuplas contendo as restrições de cada professor sendo
+                                    que a primeira posição da tupla é o nome do professor e a
+                                    segunda posição é a lista de cores que ele não pode dar aula.
     :param restricoes_turmas:
     :param preferencias:
     :param temperatura_inicial:
@@ -191,7 +195,9 @@ def cria_vertices(xlsx):
 def cria_arestas(lista_de_vertices):
     """
     Função responsável por criar a lista de arestas a partir da lista de vértices.
-    :param lista_de_vertices:
+    :param lista_de_vertices:   A lista de vértices, com o mesmo sendo uma tupla onde a
+                                primeira posição contém o id do vértice e na segunda posição,
+                                a lista de ids dos vértices adjacentes.
     :return:
     """
     lista_de_arestas = []
@@ -214,9 +220,13 @@ def cria_arestas(lista_de_vertices):
 def checa_factibilidade(lista_de_vertices, lista_de_arestas, restricoes_professor, restricoes_turma):
     """
     Função responsável por verificar a factibilidade de alocar um novo horário.
-    :param lista_de_vertices:
-    :param lista_de_arestas:
-    :param restricoes_professor:
+    :param lista_de_vertices:       A lista de vértices, com o mesmo sendo uma tupla onde a
+                                    primeira posição contém o id do vértice e na segunda posição,
+                                    a lista de ids dos vértices adjacentes.
+    :param lista_de_arestas:        Lista das arestas do grafo.
+    :param restricoes_professor:    Lista de tuplas contendo as restrições de cada professor sendo
+                                    que a primeira posição da tupla é o nome do professor e a
+                                    segunda posição é a lista de cores que ele não pode dar aula.
     :param restricoes_turma:
     :return:
     """
@@ -254,9 +264,13 @@ def colore_grafo_maior_restricao_professor(lista_de_vertices, lista_de_arestas, 
     Esta função é uma hurística de coloração. Esta função é responsável por realizar a coloração
     (alocação dos horários) dos vértices que possuem o maior número de restrições por professor,
     ou seja, os vértices que contêm professor com maiores restrições serão coloridos primeiros.
-    :param lista_de_vertices:
-    :param lista_de_arestas:
-    :param restricoes_professor:
+    :param lista_de_vertices:       A lista de vértices, com o mesmo sendo uma tupla onde a
+                                    primeira posição contém o id do vértice e na segunda posição,
+                                    a lista de ids dos vértices adjacentes.
+    :param lista_de_arestas:        Lista das arestas do grafo.
+    :param restricoes_professor:    Lista de tuplas contendo as restrições de cada professor sendo
+                                    que a primeira posição da tupla é o nome do professor e a
+                                    segunda posição é a lista de cores que ele não pode dar aula.
     :param restricoes_turma:
     :param preferencias:
     :return:
@@ -297,9 +311,13 @@ def colore_grafo_maior_grau(lista_de_vertices, lista_de_arestas, restricoes_prof
     Esta função é uma hurística de coloração. Esta função é responsável por realizar a coloração
     (alocação dos horários) dos vértices que possuem o maior, ou seja, o vértice que possui
     mais arestas ligadas a ele.
-    :param lista_de_vertices:
-    :param lista_de_arestas:
-    :param restricoes_professor:
+    :param lista_de_vertices:       A lista de vértices, com o mesmo sendo uma tupla onde a
+                                    primeira posição contém o id do vértice e na segunda posição,
+                                    a lista de ids dos vértices adjacentes.
+    :param lista_de_arestas:        Lista das arestas do grafo.
+    :param restricoes_professor:    Lista de tuplas contendo as restrições de cada professor sendo
+                                    que a primeira posição da tupla é o nome do professor e a
+                                    segunda posição é a lista de cores que ele não pode dar aula.
     :param restricoes_turma:
     :param preferencias:
     :return:
@@ -331,9 +349,13 @@ def colore_grafo(lista_de_vertices, lista_de_arestas, restricoes_professor, rest
     """
     Função responsável por atribuir uma cor para cada vértice do grafo, definindo o horario de
     cada aula.
-    :param lista_de_vertices:
-    :param lista_de_arestas:
-    :param restricoes_professor:
+    :param lista_de_vertices:       A lista de vértices, com o mesmo sendo uma tupla onde a
+                                    primeira posição contém o id do vértice e na segunda posição,
+                                    a lista de ids dos vértices adjacentes.
+    :param lista_de_arestas:        Lista das arestas do grafo.
+    :param restricoes_professor:    Lista de tuplas contendo as restrições de cada professor sendo
+                                    que a primeira posição da tupla é o nome do professor e a
+                                    segunda posição é a lista de cores que ele não pode dar aula.
     :param restricoes_turma:
     :return:
     """
@@ -356,7 +378,9 @@ def calcula_quantidade_de_cores(lista_de_vertices):
     """
     Função responsável por informar a quantidade de cores (horários) presentes no
     grafo.
-    :param lista_de_vertices:
+    :param lista_de_vertices:   A lista de vértices, com o mesmo sendo uma tupla onde a
+                                primeira posição contém o id do vértice e na segunda posição,
+                                a lista de ids dos vértices adjacentes.
     :return:
     """
     cores = []
@@ -376,7 +400,9 @@ def calcula_funcao_objetivo(quantidade_aulas_dia, lista_de_vertices, preferencia
     de preferencias não atendidas, quantidade de três aulas seguidas e quantidade de
     lacunas entre as aulas.
     :param quantidade_aulas_dia:
-    :param lista_de_vertices:
+    :param lista_de_vertices:       A lista de vértices, com o mesmo sendo uma tupla onde a
+                                    primeira posição contém o id do vértice e na segunda posição,
+                                    a lista de ids dos vértices adjacentes.
     :param preferencias_professor:
     :return:
     """
@@ -390,7 +416,9 @@ def quantidade_preferencias_nao_atendidas(preferencias_professor, lista_de_verti
     Função responsável por verificar se as preferencias dos professores sobre as
     aulas não foram atendidas.
     :param preferencias_professor:
-    :param lista_de_vertices:
+    :param lista_de_vertices:       A lista de vértices, com o mesmo sendo uma tupla onde a
+                                    primeira posição contém o id do vértice e na segunda posição,
+                                    a lista de ids dos vértices adjacentes.
     :return:
     """
     preferencias_atendidas = 0
@@ -410,7 +438,9 @@ def verifica_tres_aulas_seguidas(quantidade_aulas_dia, lista_de_vertices):
     Função responsável verificar se existe três aulas seguidas da mesma matéria
     para a mesma turma e realizar o somatório das mesmas.
     :param quantidade_aulas_dia:
-    :param lista_de_vertices:
+    :param lista_de_vertices:       A lista de vértices, com o mesmo sendo uma tupla onde a
+                                    primeira posição contém o id do vértice e na segunda posição,
+                                    a lista de ids dos vértices adjacentes.
     :return:
     """
     quantidade_tres_aulas_seguidas = 0
@@ -434,7 +464,9 @@ def verifica_lacuna_aula(quantidade_de_aulas, lista_de_vertices):
     Função responsável por veriricar se existe uma lacuna entre aulas
     e realizar o somatório das mesmas.
     :param quantidade_de_aulas:
-    :param lista_de_vertices:
+    :param lista_de_vertices:   A lista de vértices, com o mesmo sendo uma tupla onde a
+                                primeira posição contém o id do vértice e na segunda posição,
+                                a lista de ids dos vértices adjacentes.
     :return:
     """
     quantidade_lacunas = 0
@@ -450,7 +482,9 @@ def verifica_existe_aula_cor(lista_de_vertices, professor, turma, cor):
     """
     Função responsável por verificar se existe um horario alocado para um professor
     em uma determinada turma.
-    :param lista_de_vertices:
+    :param lista_de_vertices:   A lista de vértices, com o mesmo sendo uma tupla onde a
+                                primeira posição contém o id do vértice e na segunda posição,
+                                a lista de ids dos vértices adjacentes.
     :param professor:
     :param turma:
     :param cor:
@@ -505,14 +539,15 @@ def main():
     # print(calcula_quantidade_de_cores(solucao))
     # print(calcula_funcao_objetivo(len(configuracao), solucao, preferencias_professor))
     lista_de_arestas, lista_de_vertices = simulated_annealing(lista_de_vertices, lista_de_arestas, restricoes_professor,
-                                                              restricoes_turma, preferencias_professor, 100, 2, 10,
+                                                              restricoes_turma, preferencias_professor, 100, 2, 2,
                                                               0.85, len(configuracao))
 
     print("lista_de_arestas = ", lista_de_arestas)
     print("calcula_quantidade_de_cores = ", calcula_quantidade_de_cores(lista_de_vertices))
     print("calcula_funcao_objetivo = ", calcula_funcao_objetivo(len(configuracao), lista_de_vertices, preferencias_professor))
     print("lista_de_vertices = ", lista_de_vertices)
-    # print(restricoes_professor)
+    print("restricoes_professor = ", restricoes_professor)
+    print("restricoes_turma = ", restricoes_turma)
 
     print("time = ", time.time() - begin)
 
